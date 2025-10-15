@@ -1356,94 +1356,107 @@ app.get('/api-docs/openapi.json', (req, res) => {
 	res.json(openapiSpec);
 });
 
-// Inngest SDK integration
-try {
-	// Import Inngest SDK
-	const { Inngest } = require('inngest');
-	const { serve } = require('inngest/express');
+// Inngest SDK integration with proper error handling
+let inngestEnabled = false;
 
-	// Initialize Inngest client
-	const inngest = new Inngest({
-		id: process.env.INNGEST_APP_ID || 'handyman-app',
-		eventKey: process.env.INNGEST_EVENT_KEY,
-		signingKey: process.env.INNGEST_SIGNING_KEY
-	});
+// Check if Inngest environment variables are configured
+if (process.env.INNGEST_EVENT_KEY && process.env.INNGEST_SIGNING_KEY) {
+	try {
+		// Import Inngest SDK
+		const { Inngest } = require('inngest');
+		const { serve } = require('inngest/express');
 
-	// Define Inngest functions
-	const functions = [
-		// Email verification function
-		inngest.createFunction(
-			{ id: 'send-verification-email' },
-			{ event: 'auth/email.verification.requested' },
-			async ({ event, step }) => {
-				logging.info('Processing email verification:', event.data);
-				
-				// Simulate email sending
-				await step.sleep('email-delay', '1s');
-				
-				logging.info(`Verification email sent to ${event.data.email}`);
-				
-				return {
-					success: true,
-					message: 'Verification email sent',
-					email: event.data.email
-				};
-			}
-		),
+		// Initialize Inngest client
+		const inngest = new Inngest({
+			id: process.env.INNGEST_APP_ID || 'handyman-app',
+			eventKey: process.env.INNGEST_EVENT_KEY,
+			signingKey: process.env.INNGEST_SIGNING_KEY
+		});
 
-		// Welcome email function
-		inngest.createFunction(
-			{ id: 'send-welcome-email' },
-			{ event: 'auth/user.registered' },
-			async ({ event, step }) => {
-				logging.info('Processing welcome email:', event.data);
-				
-				// Simulate email sending
-				await step.sleep('email-delay', '1s');
-				
-				logging.info(`Welcome email sent to ${event.data.email}`);
-				
-				return {
-					success: true,
-					message: 'Welcome email sent',
-					email: event.data.email
-				};
-			}
-		),
+		// Define Inngest functions
+		const functions = [
+			// Email verification function
+			inngest.createFunction(
+				{ id: 'send-verification-email' },
+				{ event: 'auth/email.verification.requested' },
+				async ({ event, step }) => {
+					logging.info('Processing email verification:', event.data);
+					
+					// Simulate email sending
+					await step.sleep('email-delay', '1s');
+					
+					logging.info(`Verification email sent to ${event.data.email}`);
+					
+					return {
+						success: true,
+						message: 'Verification email sent',
+						email: event.data.email
+					};
+				}
+			),
 
-		// Payment confirmation function
-		inngest.createFunction(
-			{ id: 'send-payment-confirmation' },
-			{ event: 'payment/verified' },
-			async ({ event, step }) => {
-				logging.info('Processing payment confirmation:', event.data);
-				
-				// Simulate email sending
-				await step.sleep('email-delay', '1s');
-				
-				logging.info(`Payment confirmation sent for ${event.data.reference}`);
-				
-				return {
-					success: true,
-					message: 'Payment confirmation sent',
-					reference: event.data.reference
-				};
-			}
-		)
-	];
+			// Welcome email function
+			inngest.createFunction(
+				{ id: 'send-welcome-email' },
+				{ event: 'auth/user.registered' },
+				async ({ event, step }) => {
+					logging.info('Processing welcome email:', event.data);
+					
+					// Simulate email sending
+					await step.sleep('email-delay', '1s');
+					
+					logging.info(`Welcome email sent to ${event.data.email}`);
+					
+					return {
+						success: true,
+						message: 'Welcome email sent',
+						email: event.data.email
+					};
+				}
+			),
 
-	// Serve Inngest functions
-	app.use('/api/inngest', serve({
-		client: inngest,
-		functions: functions
-	}));
+			// Payment confirmation function
+			inngest.createFunction(
+				{ id: 'send-payment-confirmation' },
+				{ event: 'payment/verified' },
+				async ({ event, step }) => {
+					logging.info('Processing payment confirmation:', event.data);
+					
+					// Simulate email sending
+					await step.sleep('email-delay', '1s');
+					
+					logging.info(`Payment confirmation sent for ${event.data.reference}`);
+					
+					return {
+						success: true,
+						message: 'Payment confirmation sent',
+						reference: event.data.reference
+					};
+				}
+			)
+		];
 
-	logging.info('Inngest SDK integration enabled');
+		// Serve Inngest functions
+		app.use('/api/inngest', serve({
+			client: inngest,
+			functions: functions
+		}));
 
-} catch (error) {
-	logging.warn('Inngest SDK not available, using fallback:', error.message);
-	
-	// Fallback endpoint if Inngest SDK is not available
+		inngestEnabled = true;
+		logging.info('Inngest SDK integration enabled');
+
+	} catch (error) {
+		logging.warn('Inngest SDK initialization failed:', error.message);
+		inngestEnabled = false;
+	}
+} else {
+	logging.warn('Inngest environment variables not configured');
+	inngestEnabled = false;
+}
+
+// Fallback endpoints if Inngest SDK is not available or configured
+if (!inngestEnabled) {
+	// Webhook endpoint
 	app.post('/api/inngest', (req, res) => {
 		logging.info('Inngest webhook received (fallback):', req.body);
 		
@@ -1452,7 +1465,8 @@ try {
 			message: 'Inngest webhook processed (fallback mode)',
 			timestamp: new Date().toISOString(),
 			event: req.body,
-			status: 'fallback'
+			status: 'fallback',
+			note: 'Inngest SDK not configured - add INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY to environment variables'
 		});
 	});
 
@@ -1463,7 +1477,18 @@ try {
 			message: 'Inngest endpoint is active (fallback mode)',
 			timestamp: new Date().toISOString(),
 			status: 'fallback',
-			note: 'Inngest SDK not configured'
+			configured: false,
+			note: 'To enable full Inngest integration, configure INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY environment variables',
+			availableFunctions: [
+				'email verification',
+				'welcome emails', 
+				'payment confirmations'
+			],
+			instructions: {
+				step1: 'Get your Inngest keys from https://app.inngest.com',
+				step2: 'Add INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY to your environment variables',
+				step3: 'Redeploy your application'
+			}
 		});
 	});
 }
