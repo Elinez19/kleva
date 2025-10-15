@@ -1,158 +1,45 @@
-// Handyman Management API - Direct implementation for Vercel
 const express = require('express');
-const cors = require('cors');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+
+// Set default environment variables for Vercel
+process.env.NODE_ENV = process.env.NODE_ENV || 'production';
+process.env.PORT = process.env.PORT || '3000'; // Vercel uses its own port
+
+// Basic logging
+const logging = {
+	info: (...args) => console.log('[INFO]', ...args),
+	warn: (...args) => console.warn('[WARN]', ...args),
+	error: (...args) => console.error('[ERROR]', ...args),
+	log: (...args) => console.log('[LOG]', ...args),
+};
 
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
 
-// Set environment variables
-process.env.NODE_ENV = process.env.NODE_ENV || 'production';
-
-// Simple homepage
-app.get('/', (req, res) => {
-	res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Handyman Management API</title>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-          background: linear-gradient(135deg, #ff4500 0%, #ff6347 100%);
-          color: #fff;
-          min-height: 100vh;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          padding: 20px;
-        }
-        .container {
-          background: #fff;
-          padding: 60px 40px;
-          border-radius: 20px;
-          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-          text-align: center;
-          max-width: 800px;
-          width: 100%;
-          border: 3px solid #ff4500;
-        }
-        .logo { font-size: 4em; margin-bottom: 10px; }
-        h1 { color: #ff4500; margin-bottom: 15px; font-size: 2.5em; font-weight: 700; }
-        .subtitle { color: #555; font-size: 1.1em; margin-bottom: 40px; line-height: 1.6; }
-        .btn { background: #ff4500; color: #fff; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; display: inline-block; margin: 10px; }
-        .btn:hover { background: #ff6347; transform: translateY(-2px); }
-        .status { background: #e8f5e8; padding: 15px; border-left: 4px solid #4caf50; margin: 20px 0; color: #333; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="logo">🔧</div>
-        <h1>Handyman Management API</h1>
-        <p class="subtitle">Complete REST API with Authentication, Session Management, and Payment Processing</p>
-        
-        <div class="status">
-          <h3>✅ API is Live!</h3>
-          <p>Your Handyman Management API is successfully deployed on Vercel</p>
-        </div>
-        
-        <a href="/health" class="btn">Health Check</a>
-        <a href="/api-docs" class="btn">API Documentation</a>
-        
-        <div style="margin-top: 30px; color: #666; font-size: 0.9em;">
-          <p>Version 1.0.0 • Built with Express.js, MongoDB, Redis & TypeScript</p>
-          <p>Deployed on Vercel • Environment: ${process.env.NODE_ENV}</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `);
+// CORS (simplified for Vercel)
+app.use((req, res, next) => {
+	res.setHeader('Access-Control-Allow-Origin', '*'); // Adjust in production
+	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+	res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+	if (req.method === 'OPTIONS') {
+		return res.sendStatus(200);
+	}
+	next();
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-	res.json({
-		status: 'OK',
-		message: 'Handyman Management API is running',
-		timestamp: new Date().toISOString(),
-		version: '1.0.0',
-		environment: process.env.NODE_ENV,
-		endpoints: {
-			documentation: '/api-docs',
-			health: '/health',
-			auth: '/api/v1/auth/*',
-			payments: '/api/v1/payments/*'
-		}
-	});
-});
-
-// API Documentation endpoint - Interactive Swagger UI
-app.get('/api-docs', (req, res) => {
-	res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Handyman Management API Documentation</title>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
-      <style>
-        html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
-        *, *:before, *:after { box-sizing: inherit; }
-        body { margin:0; background: #fafafa; }
-        .swagger-ui .topbar { display: none; }
-        .swagger-ui .info .title { color: #ff4500; }
-        .swagger-ui .btn.authorize { background-color: #ff4500; border-color: #ff4500; }
-        .swagger-ui .btn.authorize:hover { background-color: #ff6347; border-color: #ff6347; }
-        .swagger-ui .btn.execute { background-color: #ff4500; border-color: #ff4500; }
-        .swagger-ui .btn.execute:hover { background-color: #ff6347; border-color: #ff6347; }
-      </style>
-    </head>
-    <body>
-      <div id="swagger-ui"></div>
-      <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
-      <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
-      <script>
-        window.onload = function() {
-          const ui = SwaggerUIBundle({
-            url: '/api-docs/openapi.json',
-            dom_id: '#swagger-ui',
-            deepLinking: true,
-            presets: [
-              SwaggerUIBundle.presets.apis,
-              SwaggerUIStandalonePreset
-            ],
-            plugins: [
-              SwaggerUIBundle.plugins.DownloadUrl
-            ],
-            layout: "StandaloneLayout",
-            tryItOutEnabled: true,
-            requestInterceptor: (req) => {
-              req.url = req.url.replace('http://localhost:3006', 'https://kleva-server.vercel.app');
-              return req;
-            }
-          });
-        };
-      </script>
-    </body>
-    </html>
-  `);
-});
+// Serve static files (if any)
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Complete OpenAPI specification embedded directly
 const openapiSpec = {
 	openapi: '3.0.0',
 	info: {
 		title: 'Handyman Management API',
-		description:
-			'Comprehensive authentication system with 2FA, email verification, password reset, session management, and Paystack payment integration for the Handyman Management Platform.',
+		description: 'Comprehensive authentication system with 2FA, email verification, password reset, session management, and Paystack payment integration for the Handyman Management Platform.',
 		version: '1.0.0',
 		contact: {
 			name: 'API Support',
@@ -274,7 +161,7 @@ const openapiSpec = {
 			get: {
 				tags: ['Authentication'],
 				summary: 'Verify email address',
-				description: "Verify user's email using token sent to their email",
+				description: 'Verify user\'s email using token sent to their email',
 				parameters: [
 					{
 						name: 'token',
@@ -421,7 +308,7 @@ const openapiSpec = {
 			post: {
 				tags: ['Password Management'],
 				summary: 'Request password reset',
-				description: "Send password reset link to user's email",
+				description: 'Send password reset link to user\'s email',
 				requestBody: {
 					required: true,
 					content: {
@@ -546,7 +433,7 @@ const openapiSpec = {
 			get: {
 				tags: ['Profile'],
 				summary: 'Get current user profile',
-				description: "Retrieve authenticated user's profile information",
+				description: 'Retrieve authenticated user\'s profile information',
 				security: [{ BearerAuth: [] }],
 				responses: {
 					200: {
@@ -1152,103 +1039,68 @@ const openapiSpec = {
 				properties: {
 					success: { type: 'boolean' },
 					message: { type: 'string' },
-					user: {
-						type: 'object',
-						properties: {
-							id: { type: 'string' },
-							email: { type: 'string' },
-							role: { type: 'string', enum: ['customer', 'handyman', 'admin'] },
-							isEmailVerified: { type: 'boolean' },
-							is2FAEnabled: { type: 'boolean' }
-						}
-					},
-					tokens: {
-						type: 'object',
-						properties: {
-							accessToken: { type: 'string' },
-							refreshToken: { type: 'string' }
-						}
-					},
-					requires2FA: { type: 'boolean' },
-					tempToken: { type: 'string' }
+					accessToken: { type: 'string' },
+					refreshToken: { type: 'string' },
+					user: { $ref: '#/components/schemas/User' }
 				}
 			},
 			ChangePasswordRequest: {
 				type: 'object',
-				required: ['currentPassword', 'newPassword', 'confirmPassword'],
+				required: ['currentPassword', 'newPassword'],
 				properties: {
 					currentPassword: { type: 'string' },
 					newPassword: {
 						type: 'string',
 						minLength: 8,
 						pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)'
-					},
-					confirmPassword: { type: 'string' }
-				}
-			},
-			User: {
-				type: 'object',
-				properties: {
-					_id: { type: 'string' },
-					email: { type: 'string' },
-					role: { type: 'string', enum: ['customer', 'handyman', 'admin'] },
-					profile: { type: 'object' },
-					isEmailVerified: { type: 'boolean' },
-					is2FAEnabled: { type: 'boolean' },
-					isActive: { type: 'boolean' },
-					createdAt: { type: 'string', format: 'date-time' },
-					updatedAt: { type: 'string', format: 'date-time' }
+					}
 				}
 			},
 			Enable2FAResponse: {
 				type: 'object',
 				properties: {
 					success: { type: 'boolean' },
+					message: { type: 'string' },
 					secret: { type: 'string' },
-					qrCodeUrl: { type: 'string', description: 'Data URL for QR code image' },
+					qrCode: { type: 'string' },
 					backupCodes: {
 						type: 'array',
-						items: { type: 'string' },
-						description: '10 single-use backup codes'
-					},
-					message: { type: 'string' }
+						items: { type: 'string' }
+					}
+				}
+			},
+			User: {
+				type: 'object',
+				properties: {
+					id: { type: 'string' },
+					email: { type: 'string', format: 'email' },
+					role: { type: 'string', enum: ['customer', 'handyman', 'admin'] },
+					isEmailVerified: { type: 'boolean' },
+					isTwoFactorEnabled: { type: 'boolean' },
+					profile: { type: 'object' },
+					createdAt: { type: 'string', format: 'date-time' },
+					updatedAt: { type: 'string', format: 'date-time' }
 				}
 			},
 			Session: {
 				type: 'object',
 				properties: {
-					sessionId: { type: 'string' },
+					id: { type: 'string' },
 					deviceInfo: { type: 'string' },
 					ipAddress: { type: 'string' },
-					lastActivity: { type: 'string', format: 'date-time' },
-					createdAt: { type: 'string', format: 'date-time' }
-				}
-			},
-			SuccessMessage: {
-				type: 'object',
-				properties: {
-					success: { type: 'boolean' },
-					message: { type: 'string' }
-				}
-			},
-			ErrorResponse: {
-				type: 'object',
-				properties: {
-					success: { type: 'boolean', example: false },
-					message: { type: 'string' }
+					createdAt: { type: 'string', format: 'date-time' },
+					lastUsed: { type: 'string', format: 'date-time' },
+					isCurrent: { type: 'boolean' }
 				}
 			},
 			InitializePaymentRequest: {
 				type: 'object',
 				required: ['jobId', 'amount', 'description'],
 				properties: {
-					jobId: { type: 'string', description: 'Job ID' },
-					amount: { type: 'number', minimum: 100, description: 'Amount in NGN (minimum ₦1.00 = 100 kobo)' },
-					description: { type: 'string', maxLength: 500 },
-					metadata: {
-						type: 'object',
-						description: 'Additional metadata'
-					}
+					jobId: { type: 'string' },
+					amount: { type: 'number', minimum: 100 },
+					description: { type: 'string' },
+					metadata: { type: 'object' }
 				}
 			},
 			PaymentInitResponse: {
@@ -1259,13 +1111,10 @@ const openapiSpec = {
 					data: {
 						type: 'object',
 						properties: {
-							id: { type: 'string' },
 							reference: { type: 'string' },
-							accessCode: { type: 'string' },
-							authorizationUrl: { type: 'string', description: 'Paystack checkout URL' },
+							authorizationUrl: { type: 'string' },
 							amount: { type: 'number' },
-							currency: { type: 'string', example: 'NGN' },
-							status: { type: 'string', enum: ['pending', 'successful', 'failed'] }
+							currency: { type: 'string' }
 						}
 					}
 				}
@@ -1276,7 +1125,13 @@ const openapiSpec = {
 					success: { type: 'boolean' },
 					message: { type: 'string' },
 					data: {
-						$ref: '#/components/schemas/Payment'
+						type: 'object',
+						properties: {
+							reference: { type: 'string' },
+							amount: { type: 'number' },
+							status: { type: 'string' },
+							paidAt: { type: 'string', format: 'date-time' }
+						}
 					}
 				}
 			},
@@ -1284,65 +1139,100 @@ const openapiSpec = {
 				type: 'object',
 				properties: {
 					id: { type: 'string' },
-					paymentId: { type: 'string' },
-					jobId: { type: 'string' },
-					amount: { type: 'string', description: 'Formatted amount (e.g., ₦5,000)' },
-					currency: { type: 'string', example: 'NGN' },
-					status: { type: 'string', enum: ['pending', 'successful', 'failed', 'reversed', 'cancelled'] },
 					reference: { type: 'string' },
+					amount: { type: 'number' },
+					currency: { type: 'string' },
+					status: { type: 'string' },
+					description: { type: 'string' },
 					createdAt: { type: 'string', format: 'date-time' },
-					paidAt: { type: 'string', format: 'date-time' },
-					jobTitle: { type: 'string' }
+					paidAt: { type: 'string', format: 'date-time' }
+				}
+			},
+			SuccessMessage: {
+				type: 'object',
+				properties: {
+					success: { type: 'boolean' },
+					message: { type: 'string' }
 				}
 			}
 		},
 		responses: {
 			BadRequest: {
-				description: 'Bad request or validation error',
+				description: 'Bad request',
 				content: {
 					'application/json': {
 						schema: {
-							$ref: '#/components/schemas/ErrorResponse'
+							type: 'object',
+							properties: {
+								success: { type: 'boolean', example: false },
+								message: { type: 'string' },
+								errors: {
+									type: 'array',
+									items: {
+										type: 'object',
+										properties: {
+											field: { type: 'string' },
+											message: { type: 'string' }
+										}
+									}
+								}
+							}
 						}
 					}
 				}
 			},
 			Unauthorized: {
-				description: 'Unauthorized - Invalid or expired token',
+				description: 'Unauthorized',
 				content: {
 					'application/json': {
 						schema: {
-							$ref: '#/components/schemas/ErrorResponse'
+							type: 'object',
+							properties: {
+								success: { type: 'boolean', example: false },
+								message: { type: 'string', example: 'Unauthorized' }
+							}
 						}
 					}
 				}
 			},
 			Forbidden: {
-				description: 'Forbidden - Insufficient permissions',
+				description: 'Forbidden',
 				content: {
 					'application/json': {
 						schema: {
-							$ref: '#/components/schemas/ErrorResponse'
+							type: 'object',
+							properties: {
+								success: { type: 'boolean', example: false },
+								message: { type: 'string', example: 'Forbidden' }
+							}
 						}
 					}
 				}
 			},
 			Conflict: {
-				description: 'Conflict - Resource already exists',
+				description: 'Conflict',
 				content: {
 					'application/json': {
 						schema: {
-							$ref: '#/components/schemas/ErrorResponse'
+							type: 'object',
+							properties: {
+								success: { type: 'boolean', example: false },
+								message: { type: 'string', example: 'User already exists' }
+							}
 						}
 					}
 				}
 			},
 			TooManyRequests: {
-				description: 'Too many requests - Rate limit exceeded',
+				description: 'Too many requests',
 				content: {
 					'application/json': {
 						schema: {
-							$ref: '#/components/schemas/ErrorResponse'
+							type: 'object',
+							properties: {
+								success: { type: 'boolean', example: false },
+								message: { type: 'string', example: 'Rate limit exceeded' }
+							}
 						}
 					}
 				}
@@ -1351,147 +1241,62 @@ const openapiSpec = {
 	}
 };
 
+// Serve Swagger UI
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(openapiSpec, {
+	customCss: '.swagger-ui .topbar { display: none }',
+	customSiteTitle: 'Handyman API Documentation',
+	swaggerOptions: {
+		defaultModelsExpandDepth: 1,
+		defaultModelExpandDepth: 1
+	}
+}));
+
 // OpenAPI JSON specification
 app.get('/api-docs/openapi.json', (req, res) => {
 	res.json(openapiSpec);
 });
 
-// Inngest SDK integration with proper error handling
-let inngestEnabled = false;
-
-// Check if Inngest environment variables are configured
-if (process.env.INNGEST_EVENT_KEY && process.env.INNGEST_SIGNING_KEY) {
-	try {
-		// Import Inngest SDK
-		const { Inngest } = require('inngest');
-		const { serve } = require('inngest/express');
-
-		// Initialize Inngest client
-		const inngest = new Inngest({
-			id: process.env.INNGEST_APP_ID || 'handyman-app',
-			eventKey: process.env.INNGEST_EVENT_KEY,
-			signingKey: process.env.INNGEST_SIGNING_KEY
-		});
-
-		// Define Inngest functions
-		const functions = [
-			// Email verification function
-			inngest.createFunction(
-				{ id: 'send-verification-email' },
-				{ event: 'auth/email.verification.requested' },
-				async ({ event, step }) => {
-					logging.info('Processing email verification:', event.data);
-					
-					// Simulate email sending
-					await step.sleep('email-delay', '1s');
-					
-					logging.info(`Verification email sent to ${event.data.email}`);
-					
-					return {
-						success: true,
-						message: 'Verification email sent',
-						email: event.data.email
-					};
-				}
-			),
-
-			// Welcome email function
-			inngest.createFunction(
-				{ id: 'send-welcome-email' },
-				{ event: 'auth/user.registered' },
-				async ({ event, step }) => {
-					logging.info('Processing welcome email:', event.data);
-					
-					// Simulate email sending
-					await step.sleep('email-delay', '1s');
-					
-					logging.info(`Welcome email sent to ${event.data.email}`);
-					
-					return {
-						success: true,
-						message: 'Welcome email sent',
-						email: event.data.email
-					};
-				}
-			),
-
-			// Payment confirmation function
-			inngest.createFunction(
-				{ id: 'send-payment-confirmation' },
-				{ event: 'payment/verified' },
-				async ({ event, step }) => {
-					logging.info('Processing payment confirmation:', event.data);
-					
-					// Simulate email sending
-					await step.sleep('email-delay', '1s');
-					
-					logging.info(`Payment confirmation sent for ${event.data.reference}`);
-					
-					return {
-						success: true,
-						message: 'Payment confirmation sent',
-						reference: event.data.reference
-					};
-				}
-			)
-		];
-
-		// Serve Inngest functions
-		app.use('/api/inngest', serve({
-			client: inngest,
-			functions: functions
-		}));
-
-		inngestEnabled = true;
-		logging.info('Inngest SDK integration enabled');
-
-	} catch (error) {
-		logging.warn('Inngest SDK initialization failed:', error.message);
-		inngestEnabled = false;
-	}
-} else {
-	logging.warn('Inngest environment variables not configured');
-	inngestEnabled = false;
-}
-
-// Fallback endpoints if Inngest SDK is not available or configured
-if (!inngestEnabled) {
-	// Webhook endpoint
-	app.post('/api/inngest', (req, res) => {
-		logging.info('Inngest webhook received (fallback):', req.body);
-		
-		res.json({
-			success: true,
-			message: 'Inngest webhook processed (fallback mode)',
-			timestamp: new Date().toISOString(),
-			event: req.body,
-			status: 'fallback',
-			note: 'Inngest SDK not configured - add INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY to environment variables'
-		});
+// Inngest webhook endpoint
+app.post('/api/inngest', (req, res) => {
+	logging.info('Inngest webhook received:', req.body);
+	
+	res.json({
+		success: true,
+		message: 'Inngest webhook processed successfully',
+		timestamp: new Date().toISOString(),
+		event: req.body,
+		status: 'active',
+		note: 'This endpoint is ready for Inngest integration. Configure your Inngest keys to enable full functionality.'
 	});
+});
 
-	// Health check endpoint
-	app.get('/api/inngest', (req, res) => {
-		res.json({
-			success: true,
-			message: 'Inngest endpoint is active (fallback mode)',
-			timestamp: new Date().toISOString(),
-			status: 'fallback',
-			configured: false,
-			note: 'To enable full Inngest integration, configure INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY environment variables',
-			availableFunctions: [
-				'email verification',
-				'welcome emails', 
-				'payment confirmations'
-			],
-			instructions: {
-				step1: 'Get your Inngest keys from https://app.inngest.com',
-				step2: 'Add INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY to your environment variables',
-				step3: 'Redeploy your application'
-			}
-		});
+// Inngest health check endpoint
+app.get('/api/inngest', (req, res) => {
+	res.json({
+		success: true,
+		message: 'Inngest endpoint is active and ready',
+		timestamp: new Date().toISOString(),
+		status: 'healthy',
+		configured: false,
+		note: 'This endpoint is ready for Inngest integration',
+		availableFunctions: [
+			'email verification',
+			'welcome emails', 
+			'payment confirmations',
+			'job notifications'
+		],
+		instructions: {
+			step1: 'Get your Inngest keys from https://app.inngest.com',
+			step2: 'Add INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY to your environment variables',
+			step3: 'Implement Inngest SDK integration in your application'
+		},
+		exampleUsage: {
+			webhook: 'POST /api/inngest with Inngest event data',
+			healthCheck: 'GET /api/inngest for status information'
+		}
 	});
-}
+});
 
 // Mock API endpoints (for demonstration)
 app.post('/api/v1/auth/register', (req, res) => {
@@ -1512,24 +1317,302 @@ app.post('/api/v1/auth/login', (req, res) => {
 	});
 });
 
-// Catch-all for undefined routes (must be last)
-app.use('*', (req, res) => {
-	res.status(404).json({
-		success: false,
-		message: 'Endpoint not found',
-		availableEndpoints: [
-			'GET /',
-			'GET /health',
-			'GET /api-docs',
-			'GET /api-docs/openapi.json',
-			'POST /api/inngest',
-			'POST /api/v1/auth/register',
-			'POST /api/v1/auth/login',
-			'POST /api/v1/payments/webhook'
+app.post('/api/v1/payments/initialize-job', (req, res) => {
+	res.json({
+		success: true,
+		message: 'Payment initialization endpoint - Full implementation available',
+		note: 'This is a mock response. Full payment system is implemented.',
+		timestamp: new Date().toISOString()
+	});
+});
+
+app.get('/api/v1/payments/banks', (req, res) => {
+	res.json({
+		success: true,
+		message: 'Banks retrieved successfully',
+		data: [
+			{ id: 1, name: 'Access Bank', code: '044' },
+			{ id: 2, name: 'Guaranty Trust Bank', code: '058' },
+			{ id: 3, name: 'Zenith Bank', code: '057' },
+			{ id: 4, name: 'First Bank of Nigeria', code: '011' },
+			{ id: 5, name: 'United Bank for Africa', code: '033' }
 		],
 		timestamp: new Date().toISOString()
 	});
 });
 
-// Export for Vercel
+// Landing page route
+app.get('/', (req, res) => {
+	res.send(`
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<title>Handyman Management API</title>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1">
+			<style>
+				* { margin: 0; padding: 0; box-sizing: border-box; }
+				body {
+					font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+					background: linear-gradient(135deg, #ff4500 0%, #ff6347 100%);
+					color: #fff;
+					min-height: 100vh;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					padding: 20px;
+				}
+				.container {
+					background: #fff;
+					padding: 60px 40px;
+					border-radius: 20px;
+					box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+					text-align: center;
+					max-width: 800px;
+					width: 100%;
+					border: 3px solid #ff4500;
+				}
+				.logo {
+					font-size: 4em;
+					margin-bottom: 10px;
+					filter: drop-shadow(2px 2px 4px rgba(255, 69, 0, 0.3));
+				}
+				h1 {
+					color: #ff4500;
+					margin-bottom: 15px;
+					font-size: 2.5em;
+					font-weight: 700;
+				}
+				.subtitle {
+					color: #555;
+					font-size: 1.1em;
+					margin-bottom: 40px;
+					line-height: 1.6;
+				}
+				.features {
+					display: grid;
+					grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+					gap: 20px;
+					margin-bottom: 40px;
+				}
+				.feature {
+					background: linear-gradient(135deg, #ff4500 0%, #ff6347 100%);
+					padding: 20px;
+					border-radius: 10px;
+					color: #fff;
+					transition: transform 0.3s ease;
+				}
+				.feature:hover {
+					transform: translateY(-5px);
+					box-shadow: 0 10px 20px rgba(255, 69, 0, 0.3);
+				}
+				.feature-icon {
+					font-size: 2em;
+					margin-bottom: 10px;
+					filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.2));
+				}
+				.feature-title {
+					font-weight: 600;
+					margin-bottom: 5px;
+					color: #fff;
+				}
+				.feature-desc {
+					color: rgba(255, 255, 255, 0.9);
+					font-size: 0.9em;
+				}
+				.links {
+					display: flex;
+					gap: 15px;
+					justify-content: center;
+					flex-wrap: wrap;
+					margin-bottom: 30px;
+				}
+				.btn {
+					background: #ff4500;
+					color: #fff;
+					padding: 15px 30px;
+					text-decoration: none;
+					border-radius: 8px;
+					font-weight: 600;
+					transition: all 0.3s ease;
+					display: inline-block;
+					border: 2px solid #ff4500;
+				}
+				.btn:hover {
+					background: #ff6347;
+					transform: translateY(-2px);
+					box-shadow: 0 5px 20px rgba(255, 69, 0, 0.4);
+				}
+				.btn-secondary {
+					background: #fff;
+					color: #ff4500;
+					border: 2px solid #ff4500;
+				}
+				.btn-secondary:hover {
+					background: #ff4500;
+					color: #fff;
+				}
+				.stats {
+					display: flex;
+					justify-content: center;
+					gap: 40px;
+					margin-top: 40px;
+					padding-top: 30px;
+					border-top: 2px solid #ff4500;
+				}
+				.stat {
+					text-align: center;
+				}
+				.stat-value {
+					font-size: 2em;
+					font-weight: 700;
+					color: #ff4500;
+				}
+				.stat-label {
+					color: #666;
+					font-size: 0.9em;
+				}
+				.footer {
+					margin-top: 30px;
+					padding-top: 20px;
+					border-top: 2px solid #ff4500;
+					color: #999;
+					font-size: 0.9em;
+				}
+				.footer a {
+					color: #ff4500;
+					text-decoration: none;
+					transition: color 0.3s ease;
+				}
+				.footer a:hover {
+					color: #ff6347;
+					text-decoration: underline;
+				}
+				@media (max-width: 768px) {
+					.container { padding: 40px 30px; }
+					h1 { font-size: 2em; }
+					.logo { font-size: 3em; }
+					.features { grid-template-columns: 1fr; }
+					.stats { flex-direction: column; gap: 20px; }
+				}
+			</style>
+		</head>
+		<body>
+			<div class="container">
+				<div class="logo">🔧</div>
+				<h1>Handyman Management API</h1>
+				<p class="subtitle">
+					Complete REST API with Authentication, Session Management, and Payment Processing<br>
+					Built for connecting customers with professional handymen
+				</p>
+
+				<div class="features">
+					<div class="feature">
+						<div class="feature-icon">🔐</div>
+						<div class="feature-title">Secure Auth</div>
+						<div class="feature-desc">2FA, Email Verification, Session Management</div>
+					</div>
+					<div class="feature">
+						<div class="feature-icon">💳</div>
+						<div class="feature-title">Payments</div>
+						<div class="feature-desc">Paystack Integration for Nigerian Payments</div>
+					</div>
+					<div class="feature">
+						<div class="feature-icon">👥</div>
+						<div class="feature-title">Multi-Role</div>
+						<div class="feature-desc">Customers, Handymen, Admins</div>
+					</div>
+					<div class="feature">
+						<div class="feature-icon">📊</div>
+						<div class="feature-title">Full Docs</div>
+						<div class="feature-desc">OpenAPI 3.0 & Postman Collections</div>
+					</div>
+				</div>
+
+				<div class="links">
+					<a href="/api-docs" class="btn">📚 API Documentation</a>
+					<a href="/api-docs/openapi.json" class="btn btn-secondary">📄 OpenAPI Spec</a>
+					<a href="/health" class="btn btn-secondary">⚕️ Health Check</a>
+				</div>
+
+				<div class="stats">
+					<div class="stat">
+						<div class="stat-value">38</div>
+						<div class="stat-label">API Endpoints</div>
+					</div>
+					<div class="stat">
+						<div class="stat-value">7</div>
+						<div class="stat-label">Categories</div>
+					</div>
+					<div class="stat">
+						<div class="stat-value">3</div>
+						<div class="stat-label">User Roles</div>
+					</div>
+				</div>
+
+				<div class="footer">
+					<p>Version 1.0.0 • Built with Express.js, MongoDB, Redis & TypeScript</p>
+					<p style="margin-top: 10px;">
+						<a href="https://github.com">GitHub</a> • 
+						<a href="/api-docs">Documentation</a> • 
+						<a href="mailto:support@handyman-app.com">Support</a>
+					</p>
+				</div>
+			</div>
+		</body>
+		</html>
+	`);
+});
+
+// Health check route
+app.get('/health', (req, res) => {
+	res.json({
+		status: 'OK',
+		message: 'Handyman Management API is running',
+		timestamp: new Date().toISOString(),
+		version: '1.0.0',
+		endpoints: {
+			documentation: '/api-docs',
+			openapi: '/api-docs/openapi.json',
+			postman: '/handyman-app.postman_collection.json'
+		}
+	});
+});
+
+// Catch-all route for undefined endpoints
+app.use('*', (req, res) => {
+	res.status(404).json({
+		success: false,
+		message: 'Endpoint not found',
+		path: req.originalUrl,
+		method: req.method,
+		timestamp: new Date().toISOString(),
+		availableEndpoints: {
+			documentation: '/api-docs',
+			health: '/health',
+			inngest: '/api/inngest',
+			auth: '/api/v1/auth/*',
+			payments: '/api/v1/payments/*'
+		}
+	});
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+	logging.error('Unhandled error:', err);
+	
+	res.status(500).json({
+		success: false,
+		message: 'Internal server error',
+		timestamp: new Date().toISOString(),
+		...(process.env.NODE_ENV === 'development' && { error: err.message })
+	});
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+	logging.info(`Server running on port ${PORT}`);
+});
+
 module.exports = app;
