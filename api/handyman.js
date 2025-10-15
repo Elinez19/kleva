@@ -1283,13 +1283,13 @@ app.post('/api/inngest', (req, res) => {
 								triggers: [{ event: 'auth/email.verification.requested' }]
 							},
 							{
-								id: 'send-welcome-email', 
+								id: 'send-welcome-email',
 								name: 'Send Welcome Email',
 								triggers: [{ event: 'auth/user.registered' }]
 							},
 							{
 								id: 'send-payment-confirmation',
-								name: 'Send Payment Confirmation', 
+								name: 'Send Payment Confirmation',
 								triggers: [{ event: 'payment/verified' }]
 							}
 						]
