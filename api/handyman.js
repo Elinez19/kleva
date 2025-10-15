@@ -1333,10 +1333,12 @@ app.get('/api/inngest', (req, res) => {
 		// Return proper sync response for Inngest dashboard
 		const syncResponse = {
 			message: 'Sync successful',
+			deployId: req.query.deployId || 'latest',
 			apps: [
 				{
 					id: process.env.INNGEST_APP_ID || 'handyman-app',
 					name: 'Handyman Management App',
+					url: 'https://kleva-server.vercel.app/api/inngest',
 					functions: [
 						{
 							id: 'send-verification-email',
@@ -1404,10 +1406,12 @@ app.put('/api/inngest', (req, res) => {
 	// Return proper sync response for Inngest dashboard
 	const syncResponse = {
 		message: 'Sync successful',
+		deployId: req.query.deployId || 'latest',
 		apps: [
 			{
 				id: process.env.INNGEST_APP_ID || 'handyman-app',
 				name: 'Handyman Management App',
+				url: 'https://kleva-server.vercel.app/api/inngest',
 				functions: [
 					{
 						id: 'send-verification-email',
