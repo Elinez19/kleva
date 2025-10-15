@@ -11,7 +11,7 @@ const logging = {
 	info: (...args) => console.log('[INFO]', ...args),
 	warn: (...args) => console.warn('[WARN]', ...args),
 	error: (...args) => console.error('[ERROR]', ...args),
-	log: (...args) => console.log('[LOG]', ...args),
+	log: (...args) => console.log('[LOG]', ...args)
 };
 
 const app = express();
@@ -39,7 +39,8 @@ const openapiSpec = {
 	openapi: '3.0.0',
 	info: {
 		title: 'Handyman Management API',
-		description: 'Comprehensive authentication system with 2FA, email verification, password reset, session management, and Paystack payment integration for the Handyman Management Platform.',
+		description:
+			'Comprehensive authentication system with 2FA, email verification, password reset, session management, and Paystack payment integration for the Handyman Management Platform.',
 		version: '1.0.0',
 		contact: {
 			name: 'API Support',
@@ -161,7 +162,7 @@ const openapiSpec = {
 			get: {
 				tags: ['Authentication'],
 				summary: 'Verify email address',
-				description: 'Verify user\'s email using token sent to their email',
+				description: "Verify user's email using token sent to their email",
 				parameters: [
 					{
 						name: 'token',
@@ -308,7 +309,7 @@ const openapiSpec = {
 			post: {
 				tags: ['Password Management'],
 				summary: 'Request password reset',
-				description: 'Send password reset link to user\'s email',
+				description: "Send password reset link to user's email",
 				requestBody: {
 					required: true,
 					content: {
@@ -433,7 +434,7 @@ const openapiSpec = {
 			get: {
 				tags: ['Profile'],
 				summary: 'Get current user profile',
-				description: 'Retrieve authenticated user\'s profile information',
+				description: "Retrieve authenticated user's profile information",
 				security: [{ BearerAuth: [] }],
 				responses: {
 					200: {
@@ -1243,14 +1244,17 @@ const openapiSpec = {
 
 // Serve Swagger UI
 app.use('/api-docs', swaggerUi.serve);
-app.get('/api-docs', swaggerUi.setup(openapiSpec, {
-	customCss: '.swagger-ui .topbar { display: none }',
-	customSiteTitle: 'Handyman API Documentation',
-	swaggerOptions: {
-		defaultModelsExpandDepth: 1,
-		defaultModelExpandDepth: 1
-	}
-}));
+app.get(
+	'/api-docs',
+	swaggerUi.setup(openapiSpec, {
+		customCss: '.swagger-ui .topbar { display: none }',
+		customSiteTitle: 'Handyman API Documentation',
+		swaggerOptions: {
+			defaultModelsExpandDepth: 1,
+			defaultModelExpandDepth: 1
+		}
+	})
+);
 
 // OpenAPI JSON specification
 app.get('/api-docs/openapi.json', (req, res) => {
@@ -1260,7 +1264,7 @@ app.get('/api-docs/openapi.json', (req, res) => {
 // Inngest webhook endpoint
 app.post('/api/inngest', (req, res) => {
 	logging.info('Inngest webhook received:', req.body);
-	
+
 	res.json({
 		success: true,
 		message: 'Inngest webhook processed successfully',
@@ -1280,12 +1284,7 @@ app.get('/api/inngest', (req, res) => {
 		status: 'healthy',
 		configured: false,
 		note: 'This endpoint is ready for Inngest integration',
-		availableFunctions: [
-			'email verification',
-			'welcome emails', 
-			'payment confirmations',
-			'job notifications'
-		],
+		availableFunctions: ['email verification', 'welcome emails', 'payment confirmations', 'job notifications'],
 		instructions: {
 			step1: 'Get your Inngest keys from https://app.inngest.com',
 			step2: 'Add INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY to your environment variables',
@@ -1600,7 +1599,7 @@ app.use('*', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
 	logging.error('Unhandled error:', err);
-	
+
 	res.status(500).json({
 		success: false,
 		message: 'Internal server error',
