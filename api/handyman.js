@@ -1321,13 +1321,14 @@ app.post('/api/inngest', (req, res) => {
 // Inngest endpoint - handles both sync and health check
 app.get('/api/inngest', (req, res) => {
 	const isConfigured = !!(process.env.INNGEST_EVENT_KEY && process.env.INNGEST_SIGNING_KEY && process.env.INNGEST_APP_ID);
-	
+
 	// Check if this is a sync request from Inngest dashboard
 	// Inngest sends specific headers when syncing
-	if (req.headers['user-agent'] && req.headers['user-agent'].includes('Inngest') || 
-		req.query.sync === 'true' || 
-		req.headers['x-inngest-environment']) {
-		
+	if (
+		(req.headers['user-agent'] && req.headers['user-agent'].includes('Inngest')) ||
+		req.query.sync === 'true' ||
+		req.headers['x-inngest-environment']
+	) {
 		// Return proper sync response for Inngest dashboard
 		res.json({
 			message: 'Sync successful',
@@ -1342,13 +1343,13 @@ app.get('/api/inngest', (req, res) => {
 							triggers: [{ event: 'auth/email.verification.requested' }]
 						},
 						{
-							id: 'send-welcome-email', 
+							id: 'send-welcome-email',
 							name: 'Send Welcome Email',
 							triggers: [{ event: 'auth/user.registered' }]
 						},
 						{
 							id: 'send-payment-confirmation',
-							name: 'Send Payment Confirmation', 
+							name: 'Send Payment Confirmation',
 							triggers: [{ event: 'payment/verified' }]
 						}
 					]
