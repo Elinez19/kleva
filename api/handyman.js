@@ -15,7 +15,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 
 // Simple homepage
 app.get('/', (req, res) => {
-  res.send(`
+	res.send(`
     <!DOCTYPE html>
     <html>
     <head>
@@ -78,105 +78,364 @@ app.get('/', (req, res) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: 'Handyman Management API is running',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    environment: process.env.NODE_ENV,
-    endpoints: {
-      documentation: '/api-docs',
-      health: '/health',
-      auth: '/api/v1/auth/*',
-      payments: '/api/v1/payments/*'
-    }
-  });
+	res.json({
+		status: 'OK',
+		message: 'Handyman Management API is running',
+		timestamp: new Date().toISOString(),
+		version: '1.0.0',
+		environment: process.env.NODE_ENV,
+		endpoints: {
+			documentation: '/api-docs',
+			health: '/health',
+			auth: '/api/v1/auth/*',
+			payments: '/api/v1/payments/*'
+		}
+	});
 });
 
-// API Documentation endpoint
+// API Documentation endpoint - Interactive Swagger UI
 app.get('/api-docs', (req, res) => {
-  res.json({
-    title: 'Handyman Management API',
-    version: '1.0.0',
-    description: 'Complete REST API with Authentication, Session Management, and Payment Processing',
-    endpoints: {
-      auth: {
-        register: 'POST /api/v1/auth/register',
-        login: 'POST /api/v1/auth/login',
-        verifyEmail: 'GET /api/v1/auth/verify-email/:token',
-        forgotPassword: 'POST /api/v1/auth/forgot-password',
-        resetPassword: 'POST /api/v1/auth/reset-password/:token',
-        profile: 'GET /api/v1/auth/me',
-        updateProfile: 'PATCH /api/v1/auth/me',
-        changePassword: 'POST /api/v1/auth/change-password',
-        enable2FA: 'POST /api/v1/auth/2fa/enable',
-        verify2FA: 'POST /api/v1/auth/2fa/verify',
-        disable2FA: 'POST /api/v1/auth/2fa/disable',
-        logout: 'POST /api/v1/auth/logout',
-        refreshToken: 'POST /api/v1/auth/refresh',
-        sessions: 'GET /api/v1/auth/sessions',
-        revokeSession: 'DELETE /api/v1/auth/sessions/:id',
-        revokeAllSessions: 'DELETE /api/v1/auth/sessions'
-      },
-      payments: {
-        initializeJobPayment: 'POST /api/v1/payments/initialize-job',
-        verifyPayment: 'GET /api/v1/payments/verify/:reference',
-        getPaymentHistory: 'GET /api/v1/payments/history',
-        getPaymentDetails: 'GET /api/v1/payments/details/:reference',
-        initializeSubscriptionPayment: 'POST /api/v1/payments/initialize-subscription',
-        getBanks: 'GET /api/v1/payments/banks',
-        createTransferRecipient: 'POST /api/v1/payments/transfer-recipient',
-        payoutHandyman: 'POST /api/v1/payments/payout-handyman',
-        getPaymentStats: 'GET /api/v1/payments/stats',
-        webhook: 'POST /api/v1/payments/webhook'
-      }
-    },
-    features: [
-      'Multi-role authentication (Customer, Handyman, Admin)',
-      '2FA with TOTP (Google Authenticator/Authy)',
-      'Email verification and password reset',
-      'Session management with Redis',
-      'Rate limiting and security',
-      'Paystack payment integration',
-      'Inngest background job processing',
-      'Comprehensive API documentation'
-    ]
-  });
+	res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Handyman Management API Documentation</title>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
+      <style>
+        html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+        *, *:before, *:after { box-sizing: inherit; }
+        body { margin:0; background: #fafafa; }
+        .swagger-ui .topbar { display: none; }
+        .swagger-ui .info .title { color: #ff4500; }
+        .swagger-ui .btn.authorize { background-color: #ff4500; border-color: #ff4500; }
+        .swagger-ui .btn.authorize:hover { background-color: #ff6347; border-color: #ff6347; }
+        .swagger-ui .btn.execute { background-color: #ff4500; border-color: #ff4500; }
+        .swagger-ui .btn.execute:hover { background-color: #ff6347; border-color: #ff6347; }
+      </style>
+    </head>
+    <body>
+      <div id="swagger-ui"></div>
+      <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+      <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+      <script>
+        window.onload = function() {
+          const ui = SwaggerUIBundle({
+            url: '/api-docs/openapi.json',
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+              SwaggerUIBundle.presets.apis,
+              SwaggerUIStandalonePreset
+            ],
+            plugins: [
+              SwaggerUIBundle.plugins.DownloadUrl
+            ],
+            layout: "StandaloneLayout",
+            tryItOutEnabled: true,
+            requestInterceptor: (req) => {
+              req.url = req.url.replace('http://localhost:3006', 'https://kleva-server.vercel.app');
+              return req;
+            }
+          });
+        };
+      </script>
+    </body>
+    </html>
+  `);
+});
+
+// OpenAPI JSON specification
+app.get('/api-docs/openapi.json', (req, res) => {
+	res.json({
+		openapi: '3.0.0',
+		info: {
+			title: 'Handyman Management API',
+			version: '1.0.0',
+			description:
+				'Complete REST API with Authentication, Session Management, and Payment Processing for connecting customers with professional handymen',
+			contact: {
+				name: 'API Support',
+				email: 'support@handyman-app.com'
+			}
+		},
+		servers: [
+			{
+				url: 'https://kleva-server.vercel.app',
+				description: 'Production server'
+			}
+		],
+		tags: [
+			{
+				name: 'Authentication',
+				description: 'User authentication and session management'
+			},
+			{
+				name: 'Payments',
+				description: 'Payment processing with Paystack integration'
+			}
+		],
+		paths: {
+			'/': {
+				get: {
+					tags: ['General'],
+					summary: 'Homepage',
+					description: 'Get the API homepage with information and links',
+					responses: {
+						200: {
+							description: 'Homepage HTML',
+							content: {
+								'text/html': {
+									schema: { type: 'string' }
+								}
+							}
+						}
+					}
+				}
+			},
+			'/health': {
+				get: {
+					tags: ['General'],
+					summary: 'Health Check',
+					description: 'Check API health and status',
+					responses: {
+						200: {
+							description: 'Health status',
+							content: {
+								'application/json': {
+									schema: {
+										type: 'object',
+										properties: {
+											status: { type: 'string', example: 'OK' },
+											message: { type: 'string' },
+											timestamp: { type: 'string', format: 'date-time' },
+											version: { type: 'string' },
+											environment: { type: 'string' }
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			'/api/v1/auth/register': {
+				post: {
+					tags: ['Authentication'],
+					summary: 'Register User',
+					description: 'Register a new user (customer, handyman, or admin)',
+					requestBody: {
+						required: true,
+						content: {
+							'application/json': {
+								schema: {
+									type: 'object',
+									required: ['email', 'password', 'role'],
+									properties: {
+										email: { type: 'string', format: 'email', example: 'user@example.com' },
+										password: { type: 'string', minLength: 8, example: 'SecurePass123!' },
+										role: { type: 'string', enum: ['customer', 'handyman', 'admin'], example: 'customer' },
+										profile: {
+											type: 'object',
+											properties: {
+												firstName: { type: 'string', example: 'John' },
+												lastName: { type: 'string', example: 'Doe' },
+												phone: { type: 'string', example: '+1234567890' },
+												address: { type: 'string', example: '123 Main St' }
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					responses: {
+						200: {
+							description: 'Registration successful',
+							content: {
+								'application/json': {
+									schema: {
+										type: 'object',
+										properties: {
+											success: { type: 'boolean', example: true },
+											message: { type: 'string' },
+											userId: { type: 'string' }
+										}
+									}
+								}
+							}
+						},
+						400: {
+							description: 'Bad request',
+							content: {
+								'application/json': {
+									schema: {
+										type: 'object',
+										properties: {
+											success: { type: 'boolean', example: false },
+											message: { type: 'string' }
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			'/api/v1/auth/login': {
+				post: {
+					tags: ['Authentication'],
+					summary: 'Login User',
+					description: 'Authenticate user and get access tokens',
+					requestBody: {
+						required: true,
+						content: {
+							'application/json': {
+								schema: {
+									type: 'object',
+									required: ['email', 'password'],
+									properties: {
+										email: { type: 'string', format: 'email', example: 'user@example.com' },
+										password: { type: 'string', example: 'SecurePass123!' }
+									}
+								}
+							}
+						}
+					},
+					responses: {
+						200: {
+							description: 'Login successful',
+							content: {
+								'application/json': {
+									schema: {
+										type: 'object',
+										properties: {
+											success: { type: 'boolean', example: true },
+											message: { type: 'string' },
+											accessToken: { type: 'string' },
+											refreshToken: { type: 'string' },
+											user: {
+												type: 'object',
+												properties: {
+													id: { type: 'string' },
+													email: { type: 'string' },
+													role: { type: 'string' },
+													isEmailVerified: { type: 'boolean' },
+													is2FAEnabled: { type: 'boolean' }
+												}
+											}
+										}
+									}
+								}
+							}
+						},
+						401: {
+							description: 'Invalid credentials',
+							content: {
+								'application/json': {
+									schema: {
+										type: 'object',
+										properties: {
+											success: { type: 'boolean', example: false },
+											message: { type: 'string' }
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			'/api/v1/payments/initialize-job': {
+				post: {
+					tags: ['Payments'],
+					summary: 'Initialize Job Payment',
+					description: 'Initialize payment for a job posting',
+					security: [{ bearerAuth: [] }],
+					requestBody: {
+						required: true,
+						content: {
+							'application/json': {
+								schema: {
+									type: 'object',
+									required: ['jobId', 'amount', 'description'],
+									properties: {
+										jobId: { type: 'string', example: 'job_123' },
+										amount: { type: 'number', example: 5000 },
+										description: { type: 'string', example: 'Plumbing repair job' },
+										metadata: { type: 'object' }
+									}
+								}
+							}
+						}
+					},
+					responses: {
+						200: {
+							description: 'Payment initialized',
+							content: {
+								'application/json': {
+									schema: {
+										type: 'object',
+										properties: {
+											success: { type: 'boolean', example: true },
+											message: { type: 'string' },
+											data: {
+												type: 'object',
+												properties: {
+													reference: { type: 'string' },
+													authorizationUrl: { type: 'string' },
+													accessCode: { type: 'string' }
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		components: {
+			securitySchemes: {
+				bearerAuth: {
+					type: 'http',
+					scheme: 'bearer',
+					bearerFormat: 'JWT'
+				}
+			}
+		}
+	});
 });
 
 // Mock API endpoints (for demonstration)
 app.post('/api/v1/auth/register', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Registration endpoint - Full implementation available',
-    note: 'This is a mock response. Full authentication system is implemented.',
-    timestamp: new Date().toISOString()
-  });
+	res.json({
+		success: true,
+		message: 'Registration endpoint - Full implementation available',
+		note: 'This is a mock response. Full authentication system is implemented.',
+		timestamp: new Date().toISOString()
+	});
 });
 
 app.post('/api/v1/auth/login', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Login endpoint - Full implementation available',
-    note: 'This is a mock response. Full authentication system is implemented.',
-    timestamp: new Date().toISOString()
-  });
+	res.json({
+		success: true,
+		message: 'Login endpoint - Full implementation available',
+		note: 'This is a mock response. Full authentication system is implemented.',
+		timestamp: new Date().toISOString()
+	});
 });
 
 // Catch-all for undefined routes
 app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Endpoint not found',
-    availableEndpoints: [
-      'GET /',
-      'GET /health',
-      'GET /api-docs',
-      'POST /api/v1/auth/register',
-      'POST /api/v1/auth/login'
-    ],
-    timestamp: new Date().toISOString()
-  });
+	res.status(404).json({
+		success: false,
+		message: 'Endpoint not found',
+		availableEndpoints: ['GET /', 'GET /health', 'GET /api-docs', 'POST /api/v1/auth/register', 'POST /api/v1/auth/login'],
+		timestamp: new Date().toISOString()
+	});
 });
 
 // Export for Vercel
