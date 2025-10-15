@@ -1,10 +1,6 @@
 import { z } from 'zod';
 import { mongoIdSchema } from './common.validation';
 
-/**
- * User Validation Schemas using Zod
- */
-
 // Base profile schema
 const baseProfileSchema = z.object({
 	firstName: z.string().min(1, 'First name is required'),
@@ -130,12 +126,10 @@ export const refreshTokenSchema = z.object({
 	refreshToken: z.string().min(1, 'Refresh token is required')
 });
 
-// Update Profile Schema
 export const updateProfileSchema = z.object({
 	profile: z.union([handymanProfileSchema.partial(), customerProfileSchema.partial(), adminProfileSchema.partial()])
 });
 
-// Get User by ID Schema
 export const getUserByIdSchema = z.object({
 	id: mongoIdSchema
 });
