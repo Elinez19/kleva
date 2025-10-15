@@ -1356,6 +1356,19 @@ app.get('/api-docs/openapi.json', (req, res) => {
 	res.json(openapiSpec);
 });
 
+// Inngest webhook endpoint
+app.post('/api/inngest', (req, res) => {
+	// Handle Inngest webhook events
+	logging.info('Inngest webhook received:', req.body);
+	
+	res.json({
+		success: true,
+		message: 'Inngest webhook processed',
+		timestamp: new Date().toISOString(),
+		event: req.body
+	});
+});
+
 // Mock API endpoints (for demonstration)
 app.post('/api/v1/auth/register', (req, res) => {
 	res.json({
