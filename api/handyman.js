@@ -1354,12 +1354,20 @@ app.get('/api/inngest', (req, res) => {
 	});
 });
 
-// Inngest sync endpoint (PUT request)
+// Inngest sync endpoint (PUT request) - Enhanced for better compatibility
 app.put('/api/inngest', (req, res) => {
 	logging.info('Inngest sync request received:', req.method, req.headers);
+	logging.info('Request body:', req.body);
+	logging.info('Query params:', req.query);
+	
+	// Set proper headers for Inngest
+	res.setHeader('Content-Type', 'application/json');
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
+	res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Inngest-Signature, X-Inngest-Environment');
 	
 	// Return proper sync response for Inngest dashboard
-	res.json({
+	const syncResponse = {
 		message: 'Sync successful',
 		apps: [
 			{
@@ -1384,6 +1392,19 @@ app.put('/api/inngest', (req, res) => {
 				]
 			}
 		]
+	};
+	
+	logging.info('Sending sync response:', JSON.stringify(syncResponse, null, 2));
+	res.json(syncResponse);
+});
+
+// Simple test endpoint for Inngest verification
+app.get('/api/inngest/test', (req, res) => {
+	res.json({
+		status: 'ok',
+		message: 'Inngest test endpoint is working',
+		timestamp: new Date().toISOString(),
+		environment: process.env.NODE_ENV || 'development'
 	});
 });
 
