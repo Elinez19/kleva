@@ -1318,76 +1318,73 @@ app.post('/api/inngest', (req, res) => {
 	}
 });
 
-// Inngest endpoint - handles both sync and health check
+// Inngest endpoint - handles sync (PUT), health check (GET), and webhooks (POST)
 app.get('/api/inngest', (req, res) => {
 	const isConfigured = !!(process.env.INNGEST_EVENT_KEY && process.env.INNGEST_SIGNING_KEY && process.env.INNGEST_APP_ID);
 
-	// Check if this is a sync request from Inngest dashboard
-	// Inngest sends specific headers when syncing
-	if (
-		(req.headers['user-agent'] && req.headers['user-agent'].includes('Inngest')) ||
-		req.query.sync === 'true' ||
-		req.headers['x-inngest-environment']
-	) {
-		// Return proper sync response for Inngest dashboard
-		res.json({
-			message: 'Sync successful',
-			apps: [
-				{
-					id: process.env.INNGEST_APP_ID || 'handyman-app',
-					name: 'Handyman Management App',
-					functions: [
-						{
-							id: 'send-verification-email',
-							name: 'Send Verification Email',
-							triggers: [{ event: 'auth/email.verification.requested' }]
-						},
-						{
-							id: 'send-welcome-email',
-							name: 'Send Welcome Email',
-							triggers: [{ event: 'auth/user.registered' }]
-						},
-						{
-							id: 'send-payment-confirmation',
-							name: 'Send Payment Confirmation',
-							triggers: [{ event: 'payment/verified' }]
-						}
-					]
-				}
-			]
-		});
-	} else {
-		// Regular health check response
-		res.json({
-			success: true,
-			message: 'Inngest endpoint is active and ready',
-			timestamp: new Date().toISOString(),
-			status: 'healthy',
-			configured: isConfigured,
-			note: isConfigured ? 'Inngest SDK integration enabled' : 'This endpoint is ready for Inngest integration',
-			availableFunctions: ['email verification', 'welcome emails', 'payment confirmations', 'job notifications'],
-			environmentVariables: {
-				INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY ? 'Set' : 'Missing',
-				INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY ? 'Set' : 'Missing',
-				INNGEST_APP_ID: process.env.INNGEST_APP_ID ? 'Set' : 'Missing'
-			},
-			instructions: isConfigured
-				? {
-						step1: 'Inngest is fully configured and ready to use',
-						step2: 'Send events to /api/inngest endpoint',
-						step3: 'Check Inngest dashboard for function execution'
-				  }
-				: {
-						step1: 'Get your Inngest keys from https://app.inngest.com',
-						step2: 'Add INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY to your environment variables',
-						step3: 'Add INNGEST_APP_ID environment variable'
-				  },
-			exampleUsage: {
-				webhook: 'POST /api/inngest with Inngest event data',
-				healthCheck: 'GET /api/inngest for status information'
+	res.json({
+		success: true,
+		message: 'Inngest endpoint is active and ready',
+		timestamp: new Date().toISOString(),
+		status: 'healthy',
+		configured: isConfigured,
+		note: isConfigured ? 'Inngest SDK integration enabled' : 'This endpoint is ready for Inngest integration',
+		availableFunctions: ['email verification', 'welcome emails', 'payment confirmations', 'job notifications'],
+		environmentVariables: {
+			INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY ? 'Set' : 'Missing',
+			INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY ? 'Set' : 'Missing',
+			INNGEST_APP_ID: process.env.INNGEST_APP_ID ? 'Set' : 'Missing'
+		},
+		instructions: isConfigured
+			? {
+					step1: 'Inngest is fully configured and ready to use',
+					step2: 'Send events to /api/inngest endpoint',
+					step3: 'Check Inngest dashboard for function execution'
+			  }
+			: {
+					step1: 'Get your Inngest keys from https://app.inngest.com',
+					step2: 'Add INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY to your environment variables',
+					step3: 'Add INNGEST_APP_ID environment variable'
+			  },
+		exampleUsage: {
+			webhook: 'POST /api/inngest with Inngest event data',
+			healthCheck: 'GET /api/inngest for status information',
+			sync: 'PUT /api/inngest for Inngest dashboard sync'
+		}
+	});
+});
+
+// Inngest sync endpoint (PUT request)
+app.put('/api/inngest', (req, res) => {
+	logging.info('Inngest sync request received:', req.method, req.headers);
+	
+	// Return proper sync response for Inngest dashboard
+	res.json({
+		message: 'Sync successful',
+		apps: [
+			{
+				id: process.env.INNGEST_APP_ID || 'handyman-app',
+				name: 'Handyman Management App',
+				functions: [
+					{
+						id: 'send-verification-email',
+						name: 'Send Verification Email',
+						triggers: [{ event: 'auth/email.verification.requested' }]
+					},
+					{
+						id: 'send-welcome-email',
+						name: 'Send Welcome Email',
+						triggers: [{ event: 'auth/user.registered' }]
+					},
+					{
+						id: 'send-payment-confirmation',
+						name: 'Send Payment Confirmation',
+						triggers: [{ event: 'payment/verified' }]
+					}
+				]
 			}
-		});
-	}
+		]
+	});
 });
 
 // Mock API endpoints (for demonstration)
