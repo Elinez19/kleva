@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
 	res.setHeader('Access-Control-Allow-Origin', '*'); // Adjust in production
 	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-	res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+	res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Inngest-Signature, X-Inngest-Environment');
 	if (req.method === 'OPTIONS') {
 		return res.sendStatus(200);
 	}
@@ -1265,20 +1265,52 @@ app.get('/api-docs/openapi.json', (req, res) => {
 app.post('/api/inngest', (req, res) => {
 	logging.info('Inngest webhook received:', req.body);
 
-	res.json({
-		success: true,
-		message: 'Inngest webhook processed successfully',
-		timestamp: new Date().toISOString(),
-		event: req.body,
-		status: 'active',
-		note: 'This endpoint is ready for Inngest integration. Configure your Inngest keys to enable full functionality.'
-	});
+	// Check if this is an Inngest sync request
+	if (req.body && req.body.name === 'inngest/sync') {
+		// Return proper sync response for Inngest
+		res.json({
+			message: 'Sync successful',
+			apps: [
+				{
+					id: process.env.INNGEST_APP_ID || 'handyman-app',
+					name: 'Handyman Management App',
+					functions: [
+						{
+							id: 'send-verification-email',
+							name: 'Send Verification Email',
+							triggers: [{ event: 'auth/email.verification.requested' }]
+						},
+						{
+							id: 'send-welcome-email', 
+							name: 'Send Welcome Email',
+							triggers: [{ event: 'auth/user.registered' }]
+						},
+						{
+							id: 'send-payment-confirmation',
+							name: 'Send Payment Confirmation', 
+							triggers: [{ event: 'payment/verified' }]
+						}
+					]
+				}
+			]
+		});
+	} else {
+		// Regular webhook processing
+		res.json({
+			success: true,
+			message: 'Inngest webhook processed successfully',
+			timestamp: new Date().toISOString(),
+			event: req.body,
+			status: 'active',
+			note: 'This endpoint is ready for Inngest integration. Configure your Inngest keys to enable full functionality.'
+		});
+	}
 });
 
 // Inngest health check endpoint
 app.get('/api/inngest', (req, res) => {
 	const isConfigured = !!(process.env.INNGEST_EVENT_KEY && process.env.INNGEST_SIGNING_KEY && process.env.INNGEST_APP_ID);
-	
+
 	res.json({
 		success: true,
 		message: 'Inngest endpoint is active and ready',
@@ -1292,15 +1324,17 @@ app.get('/api/inngest', (req, res) => {
 			INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY ? 'Set' : 'Missing',
 			INNGEST_APP_ID: process.env.INNGEST_APP_ID ? 'Set' : 'Missing'
 		},
-		instructions: isConfigured ? {
-			step1: 'Inngest is fully configured and ready to use',
-			step2: 'Send events to /api/inngest endpoint',
-			step3: 'Check Inngest dashboard for function execution'
-		} : {
-			step1: 'Get your Inngest keys from https://app.inngest.com',
-			step2: 'Add INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY to your environment variables',
-			step3: 'Add INNGEST_APP_ID environment variable'
-		},
+		instructions: isConfigured
+			? {
+					step1: 'Inngest is fully configured and ready to use',
+					step2: 'Send events to /api/inngest endpoint',
+					step3: 'Check Inngest dashboard for function execution'
+			  }
+			: {
+					step1: 'Get your Inngest keys from https://app.inngest.com',
+					step2: 'Add INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY to your environment variables',
+					step3: 'Add INNGEST_APP_ID environment variable'
+			  },
 		exampleUsage: {
 			webhook: 'POST /api/inngest with Inngest event data',
 			healthCheck: 'GET /api/inngest for status information'
