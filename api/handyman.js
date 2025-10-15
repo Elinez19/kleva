@@ -1360,7 +1360,7 @@ app.get('/api-docs/openapi.json', (req, res) => {
 app.post('/api/inngest', (req, res) => {
 	// Handle Inngest webhook events
 	logging.info('Inngest webhook received:', req.body);
-	
+
 	res.json({
 		success: true,
 		message: 'Inngest webhook processed successfully',
@@ -1406,11 +1406,11 @@ app.use('*', (req, res) => {
 		message: 'Endpoint not found',
 		availableEndpoints: [
 			'GET /',
-			'GET /health', 
+			'GET /health',
 			'GET /api-docs',
 			'GET /api-docs/openapi.json',
 			'POST /api/inngest',
-			'POST /api/v1/auth/register', 
+			'POST /api/v1/auth/register',
 			'POST /api/v1/auth/login',
 			'POST /api/v1/payments/webhook'
 		],
