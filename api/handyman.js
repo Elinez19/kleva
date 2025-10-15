@@ -1263,46 +1263,57 @@ app.get('/api-docs/openapi.json', (req, res) => {
 
 // Inngest webhook endpoint
 app.post('/api/inngest', (req, res) => {
-	logging.info('Inngest webhook received:', req.body);
+	try {
+		logging.info('Inngest webhook received:', req.body);
+		logging.info('Headers:', req.headers);
 
-	// Check if this is an Inngest sync request
-	if (req.body && req.body.name === 'inngest/sync') {
-		// Return proper sync response for Inngest
-		res.json({
-			message: 'Sync successful',
-			apps: [
-				{
-					id: process.env.INNGEST_APP_ID || 'handyman-app',
-					name: 'Handyman Management App',
-					functions: [
-						{
-							id: 'send-verification-email',
-							name: 'Send Verification Email',
-							triggers: [{ event: 'auth/email.verification.requested' }]
-						},
-						{
-							id: 'send-welcome-email', 
-							name: 'Send Welcome Email',
-							triggers: [{ event: 'auth/user.registered' }]
-						},
-						{
-							id: 'send-payment-confirmation',
-							name: 'Send Payment Confirmation', 
-							triggers: [{ event: 'payment/verified' }]
-						}
-					]
-				}
-			]
-		});
-	} else {
-		// Regular webhook processing
-		res.json({
-			success: true,
-			message: 'Inngest webhook processed successfully',
+		// Check if this is an Inngest sync request (GET request to /api/inngest)
+		if (req.method === 'GET' || (req.body && req.body.name === 'inngest/sync')) {
+			// Return proper sync response for Inngest
+			res.json({
+				message: 'Sync successful',
+				apps: [
+					{
+						id: process.env.INNGEST_APP_ID || 'handyman-app',
+						name: 'Handyman Management App',
+						functions: [
+							{
+								id: 'send-verification-email',
+								name: 'Send Verification Email',
+								triggers: [{ event: 'auth/email.verification.requested' }]
+							},
+							{
+								id: 'send-welcome-email', 
+								name: 'Send Welcome Email',
+								triggers: [{ event: 'auth/user.registered' }]
+							},
+							{
+								id: 'send-payment-confirmation',
+								name: 'Send Payment Confirmation', 
+								triggers: [{ event: 'payment/verified' }]
+							}
+						]
+					}
+				]
+			});
+		} else {
+			// Regular webhook processing
+			res.json({
+				success: true,
+				message: 'Inngest webhook processed successfully',
+				timestamp: new Date().toISOString(),
+				event: req.body,
+				status: 'active',
+				note: 'This endpoint is ready for Inngest integration. Configure your Inngest keys to enable full functionality.'
+			});
+		}
+	} catch (error) {
+		logging.error('Error processing Inngest webhook:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Internal server error',
 			timestamp: new Date().toISOString(),
-			event: req.body,
-			status: 'active',
-			note: 'This endpoint is ready for Inngest integration. Configure your Inngest keys to enable full functionality.'
+			error: error.message
 		});
 	}
 });
