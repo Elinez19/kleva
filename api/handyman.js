@@ -1360,12 +1360,23 @@ app.get('/api-docs/openapi.json', (req, res) => {
 app.post('/api/inngest', (req, res) => {
 	// Handle Inngest webhook events
 	logging.info('Inngest webhook received:', req.body);
-
+	
 	res.json({
 		success: true,
-		message: 'Inngest webhook processed',
+		message: 'Inngest webhook processed successfully',
 		timestamp: new Date().toISOString(),
-		event: req.body
+		event: req.body,
+		status: 'active'
+	});
+});
+
+// Inngest health check endpoint
+app.get('/api/inngest', (req, res) => {
+	res.json({
+		success: true,
+		message: 'Inngest endpoint is active and ready',
+		timestamp: new Date().toISOString(),
+		status: 'healthy'
 	});
 });
 
@@ -1388,12 +1399,21 @@ app.post('/api/v1/auth/login', (req, res) => {
 	});
 });
 
-// Catch-all for undefined routes
+// Catch-all for undefined routes (must be last)
 app.use('*', (req, res) => {
 	res.status(404).json({
 		success: false,
 		message: 'Endpoint not found',
-		availableEndpoints: ['GET /', 'GET /health', 'GET /api-docs', 'POST /api/v1/auth/register', 'POST /api/v1/auth/login'],
+		availableEndpoints: [
+			'GET /',
+			'GET /health', 
+			'GET /api-docs',
+			'GET /api-docs/openapi.json',
+			'POST /api/inngest',
+			'POST /api/v1/auth/register', 
+			'POST /api/v1/auth/login',
+			'POST /api/v1/payments/webhook'
+		],
 		timestamp: new Date().toISOString()
 	});
 });
