@@ -151,7 +151,8 @@ const openapiSpec = {
 	openapi: '3.0.0',
 	info: {
 		title: 'Handyman Management API',
-		description: 'Comprehensive authentication system with 2FA, email verification, password reset, session management, and Paystack payment integration for the Handyman Management Platform.',
+		description:
+			'Comprehensive authentication system with 2FA, email verification, password reset, session management, and Paystack payment integration for the Handyman Management Platform.',
 		version: '1.0.0',
 		contact: {
 			name: 'API Support',
@@ -273,7 +274,7 @@ const openapiSpec = {
 			get: {
 				tags: ['Authentication'],
 				summary: 'Verify email address',
-				description: 'Verify user\'s email using token sent to their email',
+				description: "Verify user's email using token sent to their email",
 				parameters: [
 					{
 						name: 'token',
@@ -420,7 +421,7 @@ const openapiSpec = {
 			post: {
 				tags: ['Password Management'],
 				summary: 'Request password reset',
-				description: 'Send password reset link to user\'s email',
+				description: "Send password reset link to user's email",
 				requestBody: {
 					required: true,
 					content: {
@@ -545,7 +546,7 @@ const openapiSpec = {
 			get: {
 				tags: ['Profile'],
 				summary: 'Get current user profile',
-				description: 'Retrieve authenticated user\'s profile information',
+				description: "Retrieve authenticated user's profile information",
 				security: [{ BearerAuth: [] }],
 				responses: {
 					200: {
