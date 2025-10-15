@@ -1360,7 +1360,7 @@ app.get('/api-docs/openapi.json', (req, res) => {
 app.post('/api/inngest', (req, res) => {
 	// Handle Inngest webhook events
 	logging.info('Inngest webhook received:', req.body);
-	
+
 	res.json({
 		success: true,
 		message: 'Inngest webhook processed',
