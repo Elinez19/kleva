@@ -1356,29 +1356,117 @@ app.get('/api-docs/openapi.json', (req, res) => {
 	res.json(openapiSpec);
 });
 
-// Inngest webhook endpoint
-app.post('/api/inngest', (req, res) => {
-	// Handle Inngest webhook events
-	logging.info('Inngest webhook received:', req.body);
+// Inngest SDK integration
+try {
+	// Import Inngest SDK
+	const { Inngest } = require('inngest');
+	const { serve } = require('inngest/express');
 
-	res.json({
-		success: true,
-		message: 'Inngest webhook processed successfully',
-		timestamp: new Date().toISOString(),
-		event: req.body,
-		status: 'active'
+	// Initialize Inngest client
+	const inngest = new Inngest({
+		id: process.env.INNGEST_APP_ID || 'handyman-app',
+		eventKey: process.env.INNGEST_EVENT_KEY,
+		signingKey: process.env.INNGEST_SIGNING_KEY
 	});
-});
 
-// Inngest health check endpoint
-app.get('/api/inngest', (req, res) => {
-	res.json({
-		success: true,
-		message: 'Inngest endpoint is active and ready',
-		timestamp: new Date().toISOString(),
-		status: 'healthy'
+	// Define Inngest functions
+	const functions = [
+		// Email verification function
+		inngest.createFunction(
+			{ id: 'send-verification-email' },
+			{ event: 'auth/email.verification.requested' },
+			async ({ event, step }) => {
+				logging.info('Processing email verification:', event.data);
+				
+				// Simulate email sending
+				await step.sleep('email-delay', '1s');
+				
+				logging.info(`Verification email sent to ${event.data.email}`);
+				
+				return {
+					success: true,
+					message: 'Verification email sent',
+					email: event.data.email
+				};
+			}
+		),
+
+		// Welcome email function
+		inngest.createFunction(
+			{ id: 'send-welcome-email' },
+			{ event: 'auth/user.registered' },
+			async ({ event, step }) => {
+				logging.info('Processing welcome email:', event.data);
+				
+				// Simulate email sending
+				await step.sleep('email-delay', '1s');
+				
+				logging.info(`Welcome email sent to ${event.data.email}`);
+				
+				return {
+					success: true,
+					message: 'Welcome email sent',
+					email: event.data.email
+				};
+			}
+		),
+
+		// Payment confirmation function
+		inngest.createFunction(
+			{ id: 'send-payment-confirmation' },
+			{ event: 'payment/verified' },
+			async ({ event, step }) => {
+				logging.info('Processing payment confirmation:', event.data);
+				
+				// Simulate email sending
+				await step.sleep('email-delay', '1s');
+				
+				logging.info(`Payment confirmation sent for ${event.data.reference}`);
+				
+				return {
+					success: true,
+					message: 'Payment confirmation sent',
+					reference: event.data.reference
+				};
+			}
+		)
+	];
+
+	// Serve Inngest functions
+	app.use('/api/inngest', serve({
+		client: inngest,
+		functions: functions
+	}));
+
+	logging.info('Inngest SDK integration enabled');
+
+} catch (error) {
+	logging.warn('Inngest SDK not available, using fallback:', error.message);
+	
+	// Fallback endpoint if Inngest SDK is not available
+	app.post('/api/inngest', (req, res) => {
+		logging.info('Inngest webhook received (fallback):', req.body);
+		
+		res.json({
+			success: true,
+			message: 'Inngest webhook processed (fallback mode)',
+			timestamp: new Date().toISOString(),
+			event: req.body,
+			status: 'fallback'
+		});
 	});
-});
+
+	// Health check endpoint
+	app.get('/api/inngest', (req, res) => {
+		res.json({
+			success: true,
+			message: 'Inngest endpoint is active (fallback mode)',
+			timestamp: new Date().toISOString(),
+			status: 'fallback',
+			note: 'Inngest SDK not configured'
+		});
+	});
+}
 
 // Mock API endpoints (for demonstration)
 app.post('/api/v1/auth/register', (req, res) => {
