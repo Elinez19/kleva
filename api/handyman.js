@@ -1277,18 +1277,29 @@ app.post('/api/inngest', (req, res) => {
 
 // Inngest health check endpoint
 app.get('/api/inngest', (req, res) => {
+	const isConfigured = !!(process.env.INNGEST_EVENT_KEY && process.env.INNGEST_SIGNING_KEY && process.env.INNGEST_APP_ID);
+	
 	res.json({
 		success: true,
 		message: 'Inngest endpoint is active and ready',
 		timestamp: new Date().toISOString(),
 		status: 'healthy',
-		configured: false,
-		note: 'This endpoint is ready for Inngest integration',
+		configured: isConfigured,
+		note: isConfigured ? 'Inngest SDK integration enabled' : 'This endpoint is ready for Inngest integration',
 		availableFunctions: ['email verification', 'welcome emails', 'payment confirmations', 'job notifications'],
-		instructions: {
+		environmentVariables: {
+			INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY ? 'Set' : 'Missing',
+			INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY ? 'Set' : 'Missing',
+			INNGEST_APP_ID: process.env.INNGEST_APP_ID ? 'Set' : 'Missing'
+		},
+		instructions: isConfigured ? {
+			step1: 'Inngest is fully configured and ready to use',
+			step2: 'Send events to /api/inngest endpoint',
+			step3: 'Check Inngest dashboard for function execution'
+		} : {
 			step1: 'Get your Inngest keys from https://app.inngest.com',
 			step2: 'Add INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY to your environment variables',
-			step3: 'Implement Inngest SDK integration in your application'
+			step3: 'Add INNGEST_APP_ID environment variable'
 		},
 		exampleUsage: {
 			webhook: 'POST /api/inngest with Inngest event data',
