@@ -1841,6 +1841,52 @@ app.get('/api/v1/payments/banks', (req, res) => {
 	});
 });
 
+// Email verification endpoint
+app.get('/api/v1/auth/verify-email/:token', async (req, res) => {
+	try {
+		const { token } = req.params;
+		
+		if (!token) {
+			return res.status(400).json({
+				success: false,
+				message: 'Verification token is required',
+				timestamp: new Date().toISOString()
+			});
+		}
+		
+		// Mock verification (in real implementation, this would check database)
+		// For demo purposes, accept any token that starts with 'verify_'
+		if (token.startsWith('verify_')) {
+			logging.info('Email verification successful for token:', token);
+			
+			res.status(200).json({
+				success: true,
+				message: 'Email verified successfully',
+				verified: true,
+				token: token,
+				note: 'Email verification completed. You can now login.',
+				timestamp: new Date().toISOString()
+			});
+		} else {
+			res.status(400).json({
+				success: false,
+				message: 'Invalid verification token',
+				verified: false,
+				token: token,
+				timestamp: new Date().toISOString()
+			});
+		}
+		
+	} catch (error) {
+		logging.error('Email verification error:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+			timestamp: new Date().toISOString()
+		});
+	}
+});
+
 // Landing page route
 app.get('/', (req, res) => {
 	res.send(`
