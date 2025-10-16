@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const { Resend } = require('resend');
+const crypto = require('crypto');
 
 // Set default environment variables for Vercel
 process.env.NODE_ENV = process.env.NODE_ENV || 'production';
@@ -31,10 +32,227 @@ const app = express();
 const userStore = new Map();
 const emailStore = new Set();
 const phoneStore = new Set();
+const tokenStore = new Map(); // Store active tokens
+const revokedTokens = new Set(); // Store revoked tokens
+
+// Token security configuration
+const TOKEN_CONFIG = {
+	ACCESS_TOKEN_EXPIRY: 15 * 60 * 1000, // 15 minutes
+	REFRESH_TOKEN_EXPIRY: 7 * 24 * 60 * 60 * 1000, // 7 days
+	VERIFICATION_TOKEN_EXPIRY: 24 * 60 * 60 * 1000, // 24 hours
+	SECRET_KEY: process.env.JWT_SECRET || 'your-super-secret-key-change-in-production',
+	SALT_ROUNDS: 12
+};
+
+// Secure token generation functions
+const tokenUtils = {
+	// Generate cryptographically secure random token
+	generateSecureToken: (length = 32) => {
+		return crypto.randomBytes(length).toString('hex');
+	},
+
+	// Generate signed token with expiration
+	generateSignedToken: (payload, expiryMs) => {
+		const timestamp = Date.now();
+		const expiry = timestamp + expiryMs;
+		const data = {
+			...payload,
+			iat: timestamp,
+			exp: expiry
+		};
+		
+		// Create HMAC signature
+		const signature = crypto
+			.createHmac('sha256', TOKEN_CONFIG.SECRET_KEY)
+			.update(JSON.stringify(data))
+			.digest('hex');
+		
+		// Combine data and signature
+		const token = Buffer.from(JSON.stringify(data)).toString('base64') + '.' + signature;
+		return token;
+	},
+
+	// Verify and decode token
+	verifyToken: (token) => {
+		try {
+			const [dataPart, signature] = token.split('.');
+			if (!dataPart || !signature) {
+				throw new Error('Invalid token format');
+			}
+
+			// Verify signature
+			const expectedSignature = crypto
+				.createHmac('sha256', TOKEN_CONFIG.SECRET_KEY)
+				.update(dataPart)
+				.digest('hex');
+			
+			if (signature !== expectedSignature) {
+				throw new Error('Invalid token signature');
+			}
+
+			// Decode data
+			const data = JSON.parse(Buffer.from(dataPart, 'base64').toString());
+			
+			// Check expiration
+			if (Date.now() > data.exp) {
+				throw new Error('Token expired');
+			}
+
+			return data;
+		} catch (error) {
+			throw new Error(`Token verification failed: ${error.message}`);
+		}
+	},
+
+	// Generate access token
+	generateAccessToken: (userId, email, role) => {
+		return tokenUtils.generateSignedToken(
+			{ userId, email, role, type: 'access' },
+			TOKEN_CONFIG.ACCESS_TOKEN_EXPIRY
+		);
+	},
+
+	// Generate refresh token
+	generateRefreshToken: (userId) => {
+		const token = tokenUtils.generateSignedToken(
+			{ userId, type: 'refresh' },
+			TOKEN_CONFIG.REFRESH_TOKEN_EXPIRY
+		);
+		
+		// Store refresh token
+		tokenStore.set(token, {
+			userId,
+			type: 'refresh',
+			createdAt: Date.now(),
+			expiresAt: Date.now() + TOKEN_CONFIG.REFRESH_TOKEN_EXPIRY
+		});
+		
+		return token;
+	},
+
+	// Generate verification token
+	generateVerificationToken: (userId, email) => {
+		return tokenUtils.generateSignedToken(
+			{ userId, email, type: 'verification' },
+			TOKEN_CONFIG.VERIFICATION_TOKEN_EXPIRY
+		);
+	},
+
+	// Revoke token
+	revokeToken: (token) => {
+		revokedTokens.add(token);
+		tokenStore.delete(token);
+	},
+
+	// Check if token is revoked
+	isTokenRevoked: (token) => {
+		return revokedTokens.has(token);
+	},
+
+	// Clean expired tokens
+	cleanExpiredTokens: () => {
+		const now = Date.now();
+		for (const [token, data] of tokenStore) {
+			if (now > data.expiresAt) {
+				tokenStore.delete(token);
+				revokedTokens.add(token);
+			}
+		}
+	}
+};
+
+// Middleware to clean expired tokens periodically
+setInterval(() => {
+	tokenUtils.cleanExpiredTokens();
+}, 60 * 60 * 1000); // Clean every hour
+
+// Authentication middleware
+const authMiddleware = (req, res, next) => {
+	try {
+		const authHeader = req.headers.authorization;
+		if (!authHeader || !authHeader.startsWith('Bearer ')) {
+			return res.status(401).json({
+				success: false,
+				message: 'Access token required',
+				error: 'Missing or invalid authorization header'
+			});
+		}
+
+		const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+		
+		// Check if token is revoked
+		if (tokenUtils.isTokenRevoked(token)) {
+			return res.status(401).json({
+				success: false,
+				message: 'Token has been revoked',
+				error: 'Token is no longer valid'
+			});
+		}
+
+		// Verify token
+		const decoded = tokenUtils.verifyToken(token);
+		
+		if (decoded.type !== 'access') {
+			return res.status(401).json({
+				success: false,
+				message: 'Invalid token type',
+				error: 'Token is not an access token'
+			});
+		}
+
+		// Add user info to request
+		req.user = {
+			userId: decoded.userId,
+			email: decoded.email,
+			role: decoded.role
+		};
+
+		next();
+	} catch (error) {
+		return res.status(401).json({
+			success: false,
+			message: 'Invalid token',
+			error: error.message
+		});
+	}
+};
+
+// Rate limiting middleware (simple implementation)
+const rateLimitStore = new Map();
+const rateLimitMiddleware = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
+	return (req, res, next) => {
+		const clientId = req.ip || req.connection.remoteAddress;
+		const now = Date.now();
+		
+		if (!rateLimitStore.has(clientId)) {
+			rateLimitStore.set(clientId, { count: 1, resetTime: now + windowMs });
+		} else {
+			const data = rateLimitStore.get(clientId);
+			if (now > data.resetTime) {
+				data.count = 1;
+				data.resetTime = now + windowMs;
+			} else {
+				data.count++;
+			}
+			
+			if (data.count > maxRequests) {
+				return res.status(429).json({
+					success: false,
+					message: 'Too many requests',
+					error: 'Rate limit exceeded',
+					retryAfter: Math.ceil((data.resetTime - now) / 1000)
+				});
+			}
+		}
+		
+		next();
+	};
+};
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(rateLimitMiddleware(100, 15 * 60 * 1000)); // 100 requests per 15 minutes
 
 // CORS (simplified for Vercel)
 app.use((req, res, next) => {
@@ -1723,7 +1941,7 @@ app.post('/api/v1/auth/register', async (req, res) => {
 		const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 		// Generate verification token
-		const verificationToken = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		const verificationToken = tokenUtils.generateVerificationToken(userId, email);
 
 		// Store user data to prevent duplicates
 		const userData = {
@@ -1899,9 +2117,9 @@ app.post('/api/v1/auth/login', async (req, res) => {
 			isTwoFactorEnabled: false
 		};
 
-		// Generate mock tokens
-		const accessToken = `access_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-		const refreshToken = `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		// Generate secure tokens
+		const accessToken = tokenUtils.generateAccessToken(userData.userId, userData.email, userData.role);
+		const refreshToken = tokenUtils.generateRefreshToken(userData.userId);
 
 		// Mock successful login
 		res.status(200).json({
@@ -1967,41 +2185,64 @@ app.get('/api/v1/auth/verify-email/:token', async (req, res) => {
 			});
 		}
 
-		// Find user by verification token
-		let userData = null;
-		let userId = null;
-		for (const [id, user] of userStore) {
-			if (user.verificationToken === token) {
-				userData = user;
-				userId = id;
-				break;
+		// Verify the token
+		try {
+			const decoded = tokenUtils.verifyToken(token);
+			
+			if (decoded.type !== 'verification') {
+				return res.status(400).json({
+					success: false,
+					message: 'Invalid token type',
+					verified: false,
+					timestamp: new Date().toISOString()
+				});
 			}
-		}
 
-		if (userData && token.startsWith('verify_')) {
+			// Find user by userId from token
+			const userData = userStore.get(decoded.userId);
+			if (!userData) {
+				return res.status(400).json({
+					success: false,
+					message: 'User not found',
+					verified: false,
+					timestamp: new Date().toISOString()
+				});
+			}
+
+			// Verify email matches
+			if (userData.email !== decoded.email) {
+				return res.status(400).json({
+					success: false,
+					message: 'Token email mismatch',
+					verified: false,
+					timestamp: new Date().toISOString()
+				});
+			}
+
 			// Mark email as verified
 			userData.isEmailVerified = true;
 			userData.updatedAt = new Date().toISOString();
-			userStore.set(userId, userData);
+			userStore.set(decoded.userId, userData);
 			
-			logging.info('Email verification successful for user:', { userId, email: userData.email });
+			logging.info('Email verification successful for user:', { userId: decoded.userId, email: userData.email });
 			
 			res.status(200).json({
 				success: true,
 				message: 'Email verified successfully',
 				verified: true,
-				token: token,
-				userId: userId,
+				userId: decoded.userId,
 				email: userData.email,
 				note: 'Email verification completed. You can now login.',
 				timestamp: new Date().toISOString()
 			});
-		} else {
+
+		} catch (error) {
+			logging.error('Token verification failed:', error);
 			res.status(400).json({
 				success: false,
 				message: 'Invalid or expired verification token',
 				verified: false,
-				token: token,
+				error: error.message,
 				timestamp: new Date().toISOString()
 			});
 		}
@@ -2251,6 +2492,200 @@ app.get('/health', (req, res) => {
 			postman: '/handyman-app.postman_collection.json'
 		}
 	});
+});
+
+// Token refresh endpoint
+app.post('/api/v1/auth/refresh', async (req, res) => {
+	try {
+		const { refreshToken } = req.body;
+
+		if (!refreshToken) {
+			return res.status(400).json({
+				success: false,
+				message: 'Refresh token is required',
+				timestamp: new Date().toISOString()
+			});
+		}
+
+		// Check if token is revoked
+		if (tokenUtils.isTokenRevoked(refreshToken)) {
+			return res.status(401).json({
+				success: false,
+				message: 'Refresh token has been revoked',
+				timestamp: new Date().toISOString()
+			});
+		}
+
+		// Verify refresh token
+		const decoded = tokenUtils.verifyToken(refreshToken);
+		
+		if (decoded.type !== 'refresh') {
+			return res.status(401).json({
+				success: false,
+				message: 'Invalid token type',
+				timestamp: new Date().toISOString()
+			});
+		}
+
+		// Get user data
+		const userData = userStore.get(decoded.userId);
+		if (!userData) {
+			return res.status(401).json({
+				success: false,
+				message: 'User not found',
+				timestamp: new Date().toISOString()
+			});
+		}
+
+		// Generate new access token
+		const newAccessToken = tokenUtils.generateAccessToken(userData.userId, userData.email, userData.role);
+
+		res.status(200).json({
+			success: true,
+			message: 'Token refreshed successfully',
+			accessToken: newAccessToken,
+			timestamp: new Date().toISOString()
+		});
+
+	} catch (error) {
+		logging.error('Token refresh error:', error);
+		res.status(401).json({
+			success: false,
+			message: 'Invalid refresh token',
+			error: error.message,
+			timestamp: new Date().toISOString()
+		});
+	}
+});
+
+// Logout endpoint
+app.post('/api/v1/auth/logout', authMiddleware, async (req, res) => {
+	try {
+		const authHeader = req.headers.authorization;
+		const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+		
+		// Revoke the access token
+		tokenUtils.revokeToken(token);
+		
+		logging.info('User logged out:', { userId: req.user.userId });
+
+		res.status(200).json({
+			success: true,
+			message: 'Logged out successfully',
+			timestamp: new Date().toISOString()
+		});
+
+	} catch (error) {
+		logging.error('Logout error:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+			timestamp: new Date().toISOString()
+		});
+	}
+});
+
+// Revoke all tokens endpoint (for security)
+app.post('/api/v1/auth/revoke-all', authMiddleware, async (req, res) => {
+	try {
+		const userId = req.user.userId;
+		
+		// Revoke all tokens for this user
+		for (const [token, data] of tokenStore) {
+			if (data.userId === userId) {
+				tokenUtils.revokeToken(token);
+			}
+		}
+		
+		logging.info('All tokens revoked for user:', { userId });
+
+		res.status(200).json({
+			success: true,
+			message: 'All tokens revoked successfully',
+			timestamp: new Date().toISOString()
+		});
+
+	} catch (error) {
+		logging.error('Revoke all tokens error:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+			timestamp: new Date().toISOString()
+		});
+	}
+});
+
+// Protected user profile endpoint
+app.get('/api/v1/auth/me', authMiddleware, (req, res) => {
+	try {
+		const userData = userStore.get(req.user.userId);
+		if (!userData) {
+			return res.status(404).json({
+				success: false,
+				message: 'User not found',
+				timestamp: new Date().toISOString()
+			});
+		}
+
+		// Return user data (excluding sensitive information)
+		res.status(200).json({
+			success: true,
+			message: 'User profile retrieved successfully',
+			data: {
+				userId: userData.userId,
+				email: userData.email,
+				role: userData.role,
+				profile: userData.profile,
+				isEmailVerified: userData.isEmailVerified,
+				createdAt: userData.createdAt,
+				updatedAt: userData.updatedAt
+			},
+			timestamp: new Date().toISOString()
+		});
+
+	} catch (error) {
+		logging.error('Get user profile error:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+			timestamp: new Date().toISOString()
+		});
+	}
+});
+
+// Token security test endpoint
+app.get('/api/v1/auth/token-info', authMiddleware, (req, res) => {
+	try {
+		const authHeader = req.headers.authorization;
+		const token = authHeader.substring(7);
+		
+		// Decode token to show info (without sensitive data)
+		const decoded = tokenUtils.verifyToken(token);
+		
+		res.status(200).json({
+			success: true,
+			message: 'Token information',
+			data: {
+				userId: decoded.userId,
+				email: decoded.email,
+				role: decoded.role,
+				type: decoded.type,
+				issuedAt: new Date(decoded.iat).toISOString(),
+				expiresAt: new Date(decoded.exp).toISOString(),
+				timeRemaining: Math.max(0, decoded.exp - Date.now())
+			},
+			timestamp: new Date().toISOString()
+		});
+
+	} catch (error) {
+		logging.error('Token info error:', error);
+		res.status(401).json({
+			success: false,
+			message: 'Invalid token',
+			error: error.message,
+			timestamp: new Date().toISOString()
+		});
+	}
 });
 
 // User statistics endpoint (for testing)
