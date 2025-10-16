@@ -10,12 +10,6 @@ process.env.PORT = process.env.PORT || '3000'; // Vercel uses its own port
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Debug logging for environment variables
-logging.info('Environment variables check:');
-logging.info('RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'Set' : 'Missing');
-logging.info('RESEND_API_KEY length:', process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.length : 0);
-logging.info('RESEND_API_KEY starts with re_:', process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.startsWith('re_') : false);
-
 // Basic logging
 const logging = {
 	info: (...args) => console.log('[INFO]', ...args),
@@ -23,6 +17,12 @@ const logging = {
 	error: (...args) => console.error('[ERROR]', ...args),
 	log: (...args) => console.log('[LOG]', ...args)
 };
+
+// Debug logging for environment variables
+logging.info('Environment variables check:');
+logging.info('RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'Set' : 'Missing');
+logging.info('RESEND_API_KEY length:', process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.length : 0);
+logging.info('RESEND_API_KEY starts with re_:', process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.startsWith('re_') : false);
 
 const app = express();
 
