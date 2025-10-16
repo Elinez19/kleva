@@ -1262,7 +1262,7 @@ app.get('/api-docs/openapi.json', (req, res) => {
 });
 
 // Inngest webhook endpoint
-app.post('/api/inngest', (req, res) => {
+app.post('/api/inngest', async (req, res) => {
 	try {
 		logging.info('Inngest webhook received:', req.body);
 		logging.info('Headers:', req.headers);
@@ -1297,15 +1297,79 @@ app.post('/api/inngest', (req, res) => {
 				]
 			});
 		} else {
-			// Regular webhook processing
-			res.json({
-				success: true,
-				message: 'Inngest webhook processed successfully',
-				timestamp: new Date().toISOString(),
-				event: req.body,
-				status: 'active',
-				note: 'This endpoint is ready for Inngest integration. Configure your Inngest keys to enable full functionality.'
-			});
+			// Process email events
+			const { name, data } = req.body;
+			
+			if (name === 'auth/email.verification.requested') {
+				logging.info('Processing email verification request:', data);
+				
+				// Mock email sending (in real implementation, this would use email service)
+				const verificationUrl = `https://kleva-server.vercel.app/api/v1/auth/verify-email/${data.verificationToken}`;
+				
+				logging.info(`Email verification would be sent to ${data.email}`);
+				logging.info(`Verification URL: ${verificationUrl}`);
+				logging.info(`Email content: Hello ${data.firstName}, please verify your email by clicking: ${verificationUrl}`);
+				
+				res.json({
+					success: true,
+					message: 'Email verification event processed',
+					event: 'auth/email.verification.requested',
+					emailSent: {
+						to: data.email,
+						subject: 'Verify Your Email Address',
+						verificationUrl: verificationUrl,
+						status: 'Mock email sent (check logs for details)'
+					},
+					timestamp: new Date().toISOString()
+				});
+				
+			} else if (name === 'auth/user.registered') {
+				logging.info('Processing welcome email request:', data);
+				
+				logging.info(`Welcome email would be sent to ${data.email}`);
+				logging.info(`Email content: Welcome ${data.firstName} ${data.lastName}! Thank you for registering as a ${data.role}.`);
+				
+				res.json({
+					success: true,
+					message: 'Welcome email event processed',
+					event: 'auth/user.registered',
+					emailSent: {
+						to: data.email,
+						subject: 'Welcome to Handyman Management!',
+						status: 'Mock email sent (check logs for details)'
+					},
+					timestamp: new Date().toISOString()
+				});
+				
+			} else if (name === 'payment/verified') {
+				logging.info('Processing payment confirmation request:', data);
+				
+				logging.info(`Payment confirmation would be sent to ${data.email}`);
+				logging.info(`Email content: Payment of ${data.amount} confirmed for ${data.jobTitle}`);
+				
+				res.json({
+					success: true,
+					message: 'Payment confirmation event processed',
+					event: 'payment/verified',
+					emailSent: {
+						to: data.email,
+						subject: 'Payment Confirmed',
+						status: 'Mock email sent (check logs for details)'
+					},
+					timestamp: new Date().toISOString()
+				});
+				
+			} else {
+				// Generic event processing
+				res.json({
+					success: true,
+					message: 'Inngest webhook processed successfully',
+					timestamp: new Date().toISOString(),
+					event: req.body,
+					status: 'active',
+					note: 'Event processed but no specific handler found'
+				});
+			}
 		}
 	} catch (error) {
 		logging.error('Error processing Inngest webhook:', error);
@@ -1488,8 +1552,68 @@ app.post('/api/v1/auth/register', async (req, res) => {
 
 		// Generate mock user ID
 		const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		
+		// Generate verification token
+		const verificationToken = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		
+		// Send email verification event to Inngest
+		try {
+			const emailEvent = {
+				name: 'auth/email.verification.requested',
+				data: {
+					userId: userId,
+					email: email,
+					firstName: profile.firstName || 'User',
+					lastName: profile.lastName || '',
+					verificationToken: verificationToken,
+					role: role
+				}
+			};
+			
+			// Send to Inngest webhook
+			const inngestResponse = await fetch(`${req.protocol}://${req.get('host')}/api/inngest`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(emailEvent)
+			});
+			
+			logging.info('Email verification event sent to Inngest:', emailEvent);
+			
+		} catch (emailError) {
+			logging.warn('Failed to send email verification event:', emailError);
+		}
+		
+		// Send welcome email event to Inngest
+		try {
+			const welcomeEvent = {
+				name: 'auth/user.registered',
+				data: {
+					userId: userId,
+					email: email,
+					firstName: profile.firstName || 'User',
+					lastName: profile.lastName || '',
+					role: role
+				}
+			};
+			
+			// Send to Inngest webhook
+			const welcomeResponse = await fetch(`${req.protocol}://${req.get('host')}/api/inngest`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(welcomeEvent)
+			});
+			
+			logging.info('Welcome email event sent to Inngest:', welcomeEvent);
+			
+		} catch (welcomeError) {
+			logging.warn('Failed to send welcome email event:', welcomeError);
+		}
 
-		// Mock successful registration
+		// Successful registration response
 		res.status(201).json({
 			success: true,
 			message: 'Registration successful',
@@ -1497,7 +1621,12 @@ app.post('/api/v1/auth/register', async (req, res) => {
 			email: email,
 			role: role,
 			emailVerificationRequired: true,
+			verificationToken: verificationToken, // Include token for testing
 			note: 'Email verification required before login. Check your email for verification link.',
+			emailsSent: {
+				verification: 'Sent to Inngest for processing',
+				welcome: 'Sent to Inngest for processing'
+			},
 			timestamp: new Date().toISOString()
 		});
 	} catch (error) {
