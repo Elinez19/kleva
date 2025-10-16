@@ -10,6 +10,12 @@ process.env.PORT = process.env.PORT || '3000'; // Vercel uses its own port
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// Debug logging for environment variables
+logging.info('Environment variables check:');
+logging.info('RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'Set' : 'Missing');
+logging.info('RESEND_API_KEY length:', process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.length : 0);
+logging.info('RESEND_API_KEY starts with re_:', process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.startsWith('re_') : false);
+
 // Basic logging
 const logging = {
 	info: (...args) => console.log('[INFO]', ...args),
@@ -1351,6 +1357,11 @@ app.post('/api/inngest', async (req, res) => {
 				let emailResult = null;
 				let emailError = null;
 				
+				// Debug logging
+				logging.info('Attempting to send email with Resend...');
+				logging.info('RESEND_API_KEY available:', !!process.env.RESEND_API_KEY);
+				logging.info('Resend instance created:', !!resend);
+				
 				try {
 					emailResult = await resend.emails.send({
 						from: 'Handyman Management <onboarding@resend.dev>',
@@ -1363,6 +1374,11 @@ app.post('/api/inngest', async (req, res) => {
 				} catch (error) {
 					emailError = error;
 					logging.error('Failed to send email:', error);
+					logging.error('Error details:', {
+						message: error.message,
+						name: error.name,
+						stack: error.stack
+					});
 				}
 
 				res.json({
