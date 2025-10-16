@@ -1,10 +1,14 @@
 const express = require('express');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
+const { Resend } = require('resend');
 
 // Set default environment variables for Vercel
 process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 process.env.PORT = process.env.PORT || '3000'; // Vercel uses its own port
+
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Basic logging
 const logging = {
@@ -1299,54 +1303,164 @@ app.post('/api/inngest', async (req, res) => {
 		} else {
 			// Process email events
 			const { name, data } = req.body;
-			
+
 			if (name === 'auth/email.verification.requested') {
 				logging.info('Processing email verification request:', data);
-				
-				// Mock email sending (in real implementation, this would use email service)
+
 				const verificationUrl = `https://kleva-server.vercel.app/api/v1/auth/verify-email/${data.verificationToken}`;
+
+				// Email template
+				const emailHtml = `
+					<!DOCTYPE html>
+					<html>
+					<head>
+						<style>
+							body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+							.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+							.header { background: #ff4500; color: white; padding: 20px; text-align: center; }
+							.content { padding: 20px; background: #f9f9f9; }
+							.button { display: inline-block; background: #ff4500; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+							.footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+						</style>
+					</head>
+					<body>
+						<div class="container">
+							<div class="header">
+								<h1>🔧 Handyman Management</h1>
+							</div>
+							<div class="content">
+								<h2>Verify Your Email Address</h2>
+								<p>Hello ${data.firstName},</p>
+								<p>Thank you for registering with Handyman Management! Please verify your email address to complete your registration.</p>
+								<p>Click the button below to verify your email:</p>
+								<a href="${verificationUrl}" class="button">Verify Email Address</a>
+								<p>Or copy and paste this link into your browser:</p>
+								<p><a href="${verificationUrl}">${verificationUrl}</a></p>
+								<p>This link will expire in 24 hours.</p>
+								<p>If you didn't create an account, please ignore this email.</p>
+							</div>
+							<div class="footer">
+								<p>© 2024 Handyman Management. All rights reserved.</p>
+							</div>
+						</div>
+					</body>
+					</html>
+				`;
+
+				// Send email using Resend
+				let emailResult = null;
+				let emailError = null;
 				
-				logging.info(`Email verification would be sent to ${data.email}`);
-				logging.info(`Verification URL: ${verificationUrl}`);
-				logging.info(`Email content: Hello ${data.firstName}, please verify your email by clicking: ${verificationUrl}`);
-				
+				try {
+					emailResult = await resend.emails.send({
+						from: 'Handyman Management <onboarding@resend.dev>',
+						to: [data.email],
+						subject: 'Verify Your Email Address - Handyman Management',
+						html: emailHtml
+					});
+					
+					logging.info('Email sent successfully:', emailResult);
+				} catch (error) {
+					emailError = error;
+					logging.error('Failed to send email:', error);
+				}
+
 				res.json({
-					success: true,
-					message: 'Email verification event processed',
+					success: emailError ? false : true,
+					message: emailError ? 'Email verification event processed but email failed to send' : 'Email verification event processed successfully',
 					event: 'auth/email.verification.requested',
 					emailSent: {
 						to: data.email,
-						subject: 'Verify Your Email Address',
+						subject: 'Verify Your Email Address - Handyman Management',
 						verificationUrl: verificationUrl,
-						status: 'Mock email sent (check logs for details)'
+						status: emailError ? 'Failed to send' : 'Email sent successfully',
+						resendId: emailResult?.id || null,
+						error: emailError?.message || null
 					},
 					timestamp: new Date().toISOString()
 				});
-				
 			} else if (name === 'auth/user.registered') {
 				logging.info('Processing welcome email request:', data);
 				
-				logging.info(`Welcome email would be sent to ${data.email}`);
-				logging.info(`Email content: Welcome ${data.firstName} ${data.lastName}! Thank you for registering as a ${data.role}.`);
+				// Welcome email template
+				const welcomeHtml = `
+					<!DOCTYPE html>
+					<html>
+					<head>
+						<style>
+							body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+							.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+							.header { background: #ff4500; color: white; padding: 20px; text-align: center; }
+							.content { padding: 20px; background: #f9f9f9; }
+							.button { display: inline-block; background: #ff4500; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+							.footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+						</style>
+					</head>
+					<body>
+						<div class="container">
+							<div class="header">
+								<h1>🔧 Handyman Management</h1>
+							</div>
+							<div class="content">
+								<h2>Welcome to Handyman Management!</h2>
+								<p>Hello ${data.firstName} ${data.lastName},</p>
+								<p>Welcome to Handyman Management! We're excited to have you join our platform as a <strong>${data.role}</strong>.</p>
+								<p>Here's what you can do next:</p>
+								<ul>
+									<li>Complete your profile setup</li>
+									<li>Verify your email address</li>
+									<li>Explore available services</li>
+									<li>Connect with customers or handymen</li>
+								</ul>
+								<a href="https://kleva-server.vercel.app" class="button">Get Started</a>
+								<p>If you have any questions, feel free to reach out to our support team.</p>
+								<p>Thank you for choosing Handyman Management!</p>
+							</div>
+							<div class="footer">
+								<p>© 2024 Handyman Management. All rights reserved.</p>
+							</div>
+						</div>
+					</body>
+					</html>
+				`;
+				
+				// Send welcome email using Resend
+				let welcomeEmailResult = null;
+				let welcomeEmailError = null;
+				
+				try {
+					welcomeEmailResult = await resend.emails.send({
+						from: 'Handyman Management <onboarding@resend.dev>',
+						to: [data.email],
+						subject: 'Welcome to Handyman Management!',
+						html: welcomeHtml
+					});
+					
+					logging.info('Welcome email sent successfully:', welcomeEmailResult);
+				} catch (error) {
+					welcomeEmailError = error;
+					logging.error('Failed to send welcome email:', error);
+				}
 				
 				res.json({
-					success: true,
-					message: 'Welcome email event processed',
+					success: welcomeEmailError ? false : true,
+					message: welcomeEmailError ? 'Welcome email event processed but email failed to send' : 'Welcome email event processed successfully',
 					event: 'auth/user.registered',
 					emailSent: {
 						to: data.email,
 						subject: 'Welcome to Handyman Management!',
-						status: 'Mock email sent (check logs for details)'
+						status: welcomeEmailError ? 'Failed to send' : 'Email sent successfully',
+						resendId: welcomeEmailResult?.id || null,
+						error: welcomeEmailError?.message || null
 					},
 					timestamp: new Date().toISOString()
 				});
-				
 			} else if (name === 'payment/verified') {
 				logging.info('Processing payment confirmation request:', data);
-				
+
 				logging.info(`Payment confirmation would be sent to ${data.email}`);
 				logging.info(`Email content: Payment of ${data.amount} confirmed for ${data.jobTitle}`);
-				
+
 				res.json({
 					success: true,
 					message: 'Payment confirmation event processed',
@@ -1358,7 +1472,6 @@ app.post('/api/inngest', async (req, res) => {
 					},
 					timestamp: new Date().toISOString()
 				});
-				
 			} else {
 				// Generic event processing
 				res.json({
@@ -1552,10 +1665,10 @@ app.post('/api/v1/auth/register', async (req, res) => {
 
 		// Generate mock user ID
 		const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-		
+
 		// Generate verification token
 		const verificationToken = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-		
+
 		// Send email verification event to Inngest
 		try {
 			const emailEvent = {
@@ -1569,7 +1682,7 @@ app.post('/api/v1/auth/register', async (req, res) => {
 					role: role
 				}
 			};
-			
+
 			// Send to Inngest webhook
 			const inngestResponse = await fetch(`${req.protocol}://${req.get('host')}/api/inngest`, {
 				method: 'POST',
@@ -1578,13 +1691,12 @@ app.post('/api/v1/auth/register', async (req, res) => {
 				},
 				body: JSON.stringify(emailEvent)
 			});
-			
+
 			logging.info('Email verification event sent to Inngest:', emailEvent);
-			
 		} catch (emailError) {
 			logging.warn('Failed to send email verification event:', emailError);
 		}
-		
+
 		// Send welcome email event to Inngest
 		try {
 			const welcomeEvent = {
@@ -1597,7 +1709,7 @@ app.post('/api/v1/auth/register', async (req, res) => {
 					role: role
 				}
 			};
-			
+
 			// Send to Inngest webhook
 			const welcomeResponse = await fetch(`${req.protocol}://${req.get('host')}/api/inngest`, {
 				method: 'POST',
@@ -1606,9 +1718,8 @@ app.post('/api/v1/auth/register', async (req, res) => {
 				},
 				body: JSON.stringify(welcomeEvent)
 			});
-			
+
 			logging.info('Welcome email event sent to Inngest:', welcomeEvent);
-			
 		} catch (welcomeError) {
 			logging.warn('Failed to send welcome email event:', welcomeError);
 		}
