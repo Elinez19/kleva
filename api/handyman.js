@@ -23,6 +23,7 @@ logging.info('Environment variables check:');
 logging.info('RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'Set' : 'Missing');
 logging.info('RESEND_API_KEY length:', process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.length : 0);
 logging.info('RESEND_API_KEY starts with re_:', process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.startsWith('re_') : false);
+logging.info('RESEND_API_KEY first 10 chars:', process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.substring(0, 10) : 'N/A');
 
 const app = express();
 
@@ -1356,12 +1357,12 @@ app.post('/api/inngest', async (req, res) => {
 				// Send email using Resend
 				let emailResult = null;
 				let emailError = null;
-				
+
 				// Debug logging
 				logging.info('Attempting to send email with Resend...');
 				logging.info('RESEND_API_KEY available:', !!process.env.RESEND_API_KEY);
 				logging.info('Resend instance created:', !!resend);
-				
+
 				try {
 					emailResult = await resend.emails.send({
 						from: 'Handyman Management <onboarding@resend.dev>',
@@ -1369,7 +1370,7 @@ app.post('/api/inngest', async (req, res) => {
 						subject: 'Verify Your Email Address - Handyman Management',
 						html: emailHtml
 					});
-					
+
 					logging.info('Email sent successfully:', emailResult);
 				} catch (error) {
 					emailError = error;
@@ -1383,7 +1384,9 @@ app.post('/api/inngest', async (req, res) => {
 
 				res.json({
 					success: emailError ? false : true,
-					message: emailError ? 'Email verification event processed but email failed to send' : 'Email verification event processed successfully',
+					message: emailError
+						? 'Email verification event processed but email failed to send'
+						: 'Email verification event processed successfully',
 					event: 'auth/email.verification.requested',
 					emailSent: {
 						to: data.email,
@@ -1397,7 +1400,7 @@ app.post('/api/inngest', async (req, res) => {
 				});
 			} else if (name === 'auth/user.registered') {
 				logging.info('Processing welcome email request:', data);
-				
+
 				// Welcome email template
 				const welcomeHtml = `
 					<!DOCTYPE html>
@@ -1439,11 +1442,11 @@ app.post('/api/inngest', async (req, res) => {
 					</body>
 					</html>
 				`;
-				
+
 				// Send welcome email using Resend
 				let welcomeEmailResult = null;
 				let welcomeEmailError = null;
-				
+
 				try {
 					welcomeEmailResult = await resend.emails.send({
 						from: 'Handyman Management <onboarding@resend.dev>',
@@ -1451,16 +1454,18 @@ app.post('/api/inngest', async (req, res) => {
 						subject: 'Welcome to Handyman Management!',
 						html: welcomeHtml
 					});
-					
+
 					logging.info('Welcome email sent successfully:', welcomeEmailResult);
 				} catch (error) {
 					welcomeEmailError = error;
 					logging.error('Failed to send welcome email:', error);
 				}
-				
+
 				res.json({
 					success: welcomeEmailError ? false : true,
-					message: welcomeEmailError ? 'Welcome email event processed but email failed to send' : 'Welcome email event processed successfully',
+					message: welcomeEmailError
+						? 'Welcome email event processed but email failed to send'
+						: 'Welcome email event processed successfully',
 					event: 'auth/user.registered',
 					emailSent: {
 						to: data.email,
@@ -1861,7 +1866,7 @@ app.get('/api/v1/payments/banks', (req, res) => {
 app.get('/api/v1/auth/verify-email/:token', async (req, res) => {
 	try {
 		const { token } = req.params;
-		
+
 		if (!token) {
 			return res.status(400).json({
 				success: false,
@@ -1869,12 +1874,12 @@ app.get('/api/v1/auth/verify-email/:token', async (req, res) => {
 				timestamp: new Date().toISOString()
 			});
 		}
-		
+
 		// Mock verification (in real implementation, this would check database)
 		// For demo purposes, accept any token that starts with 'verify_'
 		if (token.startsWith('verify_')) {
 			logging.info('Email verification successful for token:', token);
-			
+
 			res.status(200).json({
 				success: true,
 				message: 'Email verified successfully',
@@ -1892,7 +1897,6 @@ app.get('/api/v1/auth/verify-email/:token', async (req, res) => {
 				timestamp: new Date().toISOString()
 			});
 		}
-		
 	} catch (error) {
 		logging.error('Email verification error:', error);
 		res.status(500).json({
@@ -2139,6 +2143,41 @@ app.get('/health', (req, res) => {
 			postman: '/handyman-app.postman_collection.json'
 		}
 	});
+});
+
+// Test Resend endpoint
+app.post('/api/test-resend', async (req, res) => {
+	try {
+		logging.info('Testing Resend API...');
+		logging.info('RESEND_API_KEY available:', !!process.env.RESEND_API_KEY);
+		logging.info('RESEND_API_KEY length:', process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.length : 0);
+		
+		const testEmail = req.body.email || 'elijahndenwa19@gmail.com';
+		
+		const result = await resend.emails.send({
+			from: 'Handyman Management <onboarding@resend.dev>',
+			to: [testEmail],
+			subject: 'Test Email from Handyman Management',
+			html: '<h1>Test Email</h1><p>This is a test email to verify Resend integration.</p>'
+		});
+		
+		logging.info('Resend test result:', result);
+		
+		res.json({
+			success: true,
+			message: 'Test email sent successfully',
+			resendId: result.id,
+			timestamp: new Date().toISOString()
+		});
+	} catch (error) {
+		logging.error('Resend test error:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Failed to send test email',
+			error: error.message,
+			timestamp: new Date().toISOString()
+		});
+	}
 });
 
 // Catch-all route for undefined endpoints
