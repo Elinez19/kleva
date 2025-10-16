@@ -7,6 +7,114 @@
 	},
 	"item": [
 		{
+			"name": "Health & Documentation",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						},
+						"description": "Check API health status and get basic information."
+					},
+					"response": []
+				},
+				{
+					"name": "API Documentation",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api-docs",
+							"host": ["{{baseUrl}}"],
+							"path": ["api-docs"]
+						},
+						"description": "Access the interactive Swagger UI documentation."
+					},
+					"response": []
+				},
+				{
+					"name": "OpenAPI Spec",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api-docs/openapi.json",
+							"host": ["{{baseUrl}}"],
+							"path": ["api-docs", "openapi.json"]
+						},
+						"description": "Get the OpenAPI 3.0 specification in JSON format."
+					},
+					"response": []
+				},
+				{
+					"name": "Inngest Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/inngest",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "inngest"]
+						},
+						"description": "Check Inngest integration status and configuration."
+					},
+					"response": []
+				},
+				{
+					"name": "Inngest Sync (PUT)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"url\": \"{{baseUrl}}/api/inngest\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/inngest",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "inngest"]
+						},
+						"description": "Sync Inngest functions with the dashboard."
+					},
+					"response": []
+				},
+				{
+					"name": "Inngest Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"auth/user.registered\",\n  \"data\": {\n    \"userId\": \"123\",\n    \"email\": \"user@example.com\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/inngest",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "inngest"]
+						},
+						"description": "Send events to Inngest for function execution."
+					},
+					"response": []
+				}
+			],
+			"description": "API health checks, documentation, and Inngest integration endpoints"
+		},
+		{
 			"name": "Authentication",
 			"item": [
 				{
@@ -350,7 +458,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"currentPassword\": \"Customer123\",\n  \"newPassword\": \"NewCustomer123\",\n  \"confirmPassword\": \"NewCustomer123\"\n}"
+							"raw": "{\n  \"currentPassword\": \"Customer123\",\n  \"newPassword\": \"NewCustomer123\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/change-password",
@@ -723,70 +831,6 @@
 					"response": []
 				},
 				{
-					"name": "Get Payment Details",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/payments/:reference",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "payments", ":reference"],
-							"variable": [
-								{
-									"key": "reference",
-									"value": "payment-reference",
-									"description": "Payment reference"
-								}
-							]
-						},
-						"description": "Get detailed information about a specific payment."
-					},
-					"response": []
-				},
-				{
-					"name": "Initialize Subscription Payment",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"planId\": \"premium-plan\",\n  \"amount\": 10000,\n  \"description\": \"Premium subscription - 1 month\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/payments/initialize-subscription",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "payments", "initialize-subscription"]
-						},
-						"description": "Initialize payment for subscription plan."
-					},
-					"response": []
-				},
-				{
 					"name": "Get Banks",
 					"request": {
 						"method": "GET",
@@ -797,96 +841,6 @@
 							"path": ["api", "v1", "payments", "banks"]
 						},
 						"description": "Get list of supported banks for transfers."
-					},
-					"response": []
-				},
-				{
-					"name": "Create Transfer Recipient",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"type\": \"nuban\",\n  \"name\": \"John Handyman\",\n  \"accountNumber\": \"0123456789\",\n  \"bankCode\": \"058\",\n  \"email\": \"handyman@example.com\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/payments/transfer-recipient",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "payments", "transfer-recipient"]
-						},
-						"description": "Create transfer recipient for handyman payouts."
-					},
-					"response": []
-				},
-				{
-					"name": "Payout to Handyman (Admin)",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"jobId\": \"job-123\",\n  \"handymanId\": \"handyman-456\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/payments/payout-handyman",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "payments", "payout-handyman"]
-						},
-						"description": "Initiate payout to handyman after job completion (Admin only)."
-					},
-					"response": []
-				},
-				{
-					"name": "Get Payment Stats",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/payments/stats",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "payments", "stats"]
-						},
-						"description": "Get payment statistics for authenticated user or all payments (admin)."
 					},
 					"response": []
 				},
@@ -919,20 +873,6 @@
 				}
 			],
 			"description": "Payment processing with Paystack integration"
-		},
-		{
-			"name": "Health Check",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/health",
-					"host": ["{{baseUrl}}"],
-					"path": ["health"]
-				},
-				"description": "Check API health status."
-			},
-			"response": []
 		}
 	],
 	"event": [
@@ -954,7 +894,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://localhost:3006",
+			"value": "https://kleva-server.vercel.app",
 			"type": "string"
 		}
 	]

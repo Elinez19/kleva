@@ -1321,15 +1321,16 @@ app.post('/api/inngest', (req, res) => {
 // Inngest endpoint - handles sync (PUT), health check (GET), and webhooks (POST)
 app.get('/api/inngest', (req, res) => {
 	const isConfigured = !!(process.env.INNGEST_EVENT_KEY && process.env.INNGEST_SIGNING_KEY && process.env.INNGEST_APP_ID);
-	
+
 	// Check if this is a sync request from Inngest dashboard
 	// Inngest sends specific headers when syncing
-	if (req.headers['user-agent'] && req.headers['user-agent'].includes('Inngest') || 
-		req.query.sync === 'true' || 
-		req.headers['x-inngest-environment']) {
-		
+	if (
+		(req.headers['user-agent'] && req.headers['user-agent'].includes('Inngest')) ||
+		req.query.sync === 'true' ||
+		req.headers['x-inngest-environment']
+	) {
 		logging.info('Inngest sync request detected via GET:', req.headers);
-		
+
 		// Return proper sync response for Inngest dashboard
 		const syncResponse = {
 			message: 'Sync successful',
@@ -1359,7 +1360,7 @@ app.get('/api/inngest', (req, res) => {
 				}
 			]
 		};
-		
+
 		logging.info('Sending sync response via GET:', syncResponse);
 		res.json(syncResponse);
 	} else {
@@ -1402,7 +1403,7 @@ app.put('/api/inngest', (req, res) => {
 	logging.info('Inngest sync request received:', req.method, req.headers);
 	logging.info('Request body:', req.body);
 	logging.info('Query params:', req.query);
-	
+
 	// Return proper sync response for Inngest dashboard
 	const syncResponse = {
 		message: 'Sync successful',
@@ -1432,7 +1433,7 @@ app.put('/api/inngest', (req, res) => {
 			}
 		]
 	};
-	
+
 	logging.info('Sending sync response:', syncResponse);
 	res.json(syncResponse);
 });
@@ -1441,7 +1442,7 @@ app.put('/api/inngest', (req, res) => {
 app.post('/api/v1/auth/register', async (req, res) => {
 	try {
 		const { email, password, role, profile } = req.body;
-		
+
 		// Basic validation
 		if (!email || !password || !role || !profile) {
 			return res.status(400).json({
@@ -1455,7 +1456,7 @@ app.post('/api/v1/auth/register', async (req, res) => {
 				]
 			});
 		}
-		
+
 		// Email validation
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(email)) {
@@ -1465,7 +1466,7 @@ app.post('/api/v1/auth/register', async (req, res) => {
 				errors: [{ field: 'email', message: 'Please provide a valid email address' }]
 			});
 		}
-		
+
 		// Password validation
 		if (password.length < 8) {
 			return res.status(400).json({
@@ -1474,7 +1475,7 @@ app.post('/api/v1/auth/register', async (req, res) => {
 				errors: [{ field: 'password', message: 'Password must be at least 8 characters' }]
 			});
 		}
-		
+
 		// Role validation
 		const validRoles = ['customer', 'handyman', 'admin'];
 		if (!validRoles.includes(role)) {
@@ -1484,10 +1485,10 @@ app.post('/api/v1/auth/register', async (req, res) => {
 				errors: [{ field: 'role', message: 'Role must be customer, handyman, or admin' }]
 			});
 		}
-		
+
 		// Generate mock user ID
 		const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-		
+
 		// Mock successful registration
 		res.status(201).json({
 			success: true,
@@ -1499,7 +1500,6 @@ app.post('/api/v1/auth/register', async (req, res) => {
 			note: 'Email verification required before login. Check your email for verification link.',
 			timestamp: new Date().toISOString()
 		});
-		
 	} catch (error) {
 		logging.error('Registration error:', error);
 		res.status(500).json({
@@ -1513,7 +1513,7 @@ app.post('/api/v1/auth/register', async (req, res) => {
 app.post('/api/v1/auth/login', async (req, res) => {
 	try {
 		const { email, password, twoFactorCode } = req.body;
-		
+
 		// Basic validation
 		if (!email || !password) {
 			return res.status(400).json({
@@ -1525,7 +1525,7 @@ app.post('/api/v1/auth/login', async (req, res) => {
 				]
 			});
 		}
-		
+
 		// Email validation
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(email)) {
@@ -1535,7 +1535,7 @@ app.post('/api/v1/auth/login', async (req, res) => {
 				errors: [{ field: 'email', message: 'Please provide a valid email address' }]
 			});
 		}
-		
+
 		// Mock authentication (in real implementation, this would check database)
 		// For demo purposes, accept any email/password combination
 		const mockUser = {
@@ -1545,11 +1545,11 @@ app.post('/api/v1/auth/login', async (req, res) => {
 			isEmailVerified: true,
 			isTwoFactorEnabled: false
 		};
-		
+
 		// Generate mock tokens
 		const accessToken = `access_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 		const refreshToken = `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-		
+
 		// Mock successful login
 		res.status(200).json({
 			success: true,
@@ -1567,7 +1567,6 @@ app.post('/api/v1/auth/login', async (req, res) => {
 			},
 			timestamp: new Date().toISOString()
 		});
-		
 	} catch (error) {
 		logging.error('Login error:', error);
 		res.status(500).json({
