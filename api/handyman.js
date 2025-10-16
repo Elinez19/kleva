@@ -27,6 +27,11 @@ logging.info('RESEND_API_KEY first 10 chars:', process.env.RESEND_API_KEY ? proc
 
 const app = express();
 
+// In-memory store for user data (in production, use a database)
+const userStore = new Map();
+const emailStore = new Set();
+const phoneStore = new Set();
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -1684,11 +1689,63 @@ app.post('/api/v1/auth/register', async (req, res) => {
 			});
 		}
 
+		// Check for duplicate email
+		if (emailStore.has(email.toLowerCase())) {
+			return res.status(409).json({
+				success: false,
+				message: 'Email already registered',
+				errors: [{ field: 'email', message: 'An account with this email already exists' }]
+			});
+		}
+
+		// Check for duplicate phone number (if provided)
+		if (profile.phone && phoneStore.has(profile.phone)) {
+			return res.status(409).json({
+				success: false,
+				message: 'Phone number already registered',
+				errors: [{ field: 'phone', message: 'An account with this phone number already exists' }]
+			});
+		}
+
+		// Additional profile validation
+		if (!profile.firstName || !profile.lastName) {
+			return res.status(400).json({
+				success: false,
+				message: 'Missing profile information',
+				errors: [
+					{ field: 'firstName', message: 'First name is required' },
+					{ field: 'lastName', message: 'Last name is required' }
+				]
+			});
+		}
+
 		// Generate mock user ID
 		const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 		// Generate verification token
 		const verificationToken = `verify_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+		// Store user data to prevent duplicates
+		const userData = {
+			userId: userId,
+			email: email.toLowerCase(),
+			password: password, // In production, hash this password
+			role: role,
+			profile: profile,
+			verificationToken: verificationToken,
+			isEmailVerified: false,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString()
+		};
+
+		// Add to stores
+		userStore.set(userId, userData);
+		emailStore.add(email.toLowerCase());
+		if (profile.phone) {
+			phoneStore.add(profile.phone);
+		}
+
+		logging.info('User registered successfully:', { userId, email, role });
 
 		// Send email verification event to Inngest
 		try {
@@ -1797,13 +1854,48 @@ app.post('/api/v1/auth/login', async (req, res) => {
 			});
 		}
 
-		// Mock authentication (in real implementation, this would check database)
-		// For demo purposes, accept any email/password combination
+		// Check if user exists in our store
+		const userExists = emailStore.has(email.toLowerCase());
+		if (!userExists) {
+			return res.status(401).json({
+				success: false,
+				message: 'Invalid credentials',
+				errors: [{ field: 'email', message: 'No account found with this email address' }]
+			});
+		}
+
+		// Find user data
+		let userData = null;
+		for (const [userId, user] of userStore) {
+			if (user.email === email.toLowerCase()) {
+				userData = user;
+				break;
+			}
+		}
+
+		// Check password (in production, compare hashed passwords)
+		if (userData.password !== password) {
+			return res.status(401).json({
+				success: false,
+				message: 'Invalid credentials',
+				errors: [{ field: 'password', message: 'Incorrect password' }]
+			});
+		}
+
+		// Check if email is verified
+		if (!userData.isEmailVerified) {
+			return res.status(403).json({
+				success: false,
+				message: 'Email not verified',
+				errors: [{ field: 'email', message: 'Please verify your email address before logging in' }]
+			});
+		}
+
 		const mockUser = {
-			id: `user_${Date.now()}`,
-			email: email,
-			role: email.includes('admin') ? 'admin' : email.includes('handyman') ? 'handyman' : 'customer',
-			isEmailVerified: true,
+			id: userData.userId,
+			email: userData.email,
+			role: userData.role,
+			isEmailVerified: userData.isEmailVerified,
 			isTwoFactorEnabled: false
 		};
 
@@ -1875,23 +1967,39 @@ app.get('/api/v1/auth/verify-email/:token', async (req, res) => {
 			});
 		}
 
-		// Mock verification (in real implementation, this would check database)
-		// For demo purposes, accept any token that starts with 'verify_'
-		if (token.startsWith('verify_')) {
-			logging.info('Email verification successful for token:', token);
+		// Find user by verification token
+		let userData = null;
+		let userId = null;
+		for (const [id, user] of userStore) {
+			if (user.verificationToken === token) {
+				userData = user;
+				userId = id;
+				break;
+			}
+		}
 
+		if (userData && token.startsWith('verify_')) {
+			// Mark email as verified
+			userData.isEmailVerified = true;
+			userData.updatedAt = new Date().toISOString();
+			userStore.set(userId, userData);
+			
+			logging.info('Email verification successful for user:', { userId, email: userData.email });
+			
 			res.status(200).json({
 				success: true,
 				message: 'Email verified successfully',
 				verified: true,
 				token: token,
+				userId: userId,
+				email: userData.email,
 				note: 'Email verification completed. You can now login.',
 				timestamp: new Date().toISOString()
 			});
 		} else {
 			res.status(400).json({
 				success: false,
-				message: 'Invalid verification token',
+				message: 'Invalid or expired verification token',
 				verified: false,
 				token: token,
 				timestamp: new Date().toISOString()
@@ -2142,6 +2250,27 @@ app.get('/health', (req, res) => {
 			openapi: '/api-docs/openapi.json',
 			postman: '/handyman-app.postman_collection.json'
 		}
+	});
+});
+
+// User statistics endpoint (for testing)
+app.get('/api/v1/users/stats', (req, res) => {
+	res.json({
+		success: true,
+		message: 'User statistics',
+		data: {
+			totalUsers: userStore.size,
+			totalEmails: emailStore.size,
+			totalPhones: phoneStore.size,
+			verifiedUsers: Array.from(userStore.values()).filter(user => user.isEmailVerified).length,
+			unverifiedUsers: Array.from(userStore.values()).filter(user => !user.isEmailVerified).length,
+			usersByRole: {
+				customer: Array.from(userStore.values()).filter(user => user.role === 'customer').length,
+				handyman: Array.from(userStore.values()).filter(user => user.role === 'handyman').length,
+				admin: Array.from(userStore.values()).filter(user => user.role === 'admin').length
+			}
+		},
+		timestamp: new Date().toISOString()
 	});
 });
 
