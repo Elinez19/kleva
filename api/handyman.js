@@ -1365,7 +1365,7 @@ app.post('/api/inngest', async (req, res) => {
 
 				try {
 					emailResult = await resend.emails.send({
-						from: 'Acme <onboarding@resend.dev>',
+						from: 'Handyman Management <noreply@anorateck.com>',
 						to: [data.email],
 						subject: 'Verify Your Email Address - Handyman Management',
 						html: emailHtml
@@ -1449,7 +1449,7 @@ app.post('/api/inngest', async (req, res) => {
 
 				try {
 					welcomeEmailResult = await resend.emails.send({
-						from: 'Acme <onboarding@resend.dev>',
+						from: 'Handyman Management <welcome@anorateck.com>',
 						to: [data.email],
 						subject: 'Welcome to Handyman Management!',
 						html: welcomeHtml
@@ -2155,7 +2155,7 @@ app.post('/api/test-resend', async (req, res) => {
 		const testEmail = req.body.email || 'elijahndenwa19@gmail.com';
 		
 		const result = await resend.emails.send({
-			from: 'Acme <onboarding@resend.dev>',
+			from: 'Handyman Management <test@anorateck.com>',
 			to: [testEmail],
 			subject: 'Test Email from Handyman Management',
 			html: '<h1>Test Email</h1><p>This is a test email to verify Resend integration.</p>'
