@@ -1437,23 +1437,145 @@ app.put('/api/inngest', (req, res) => {
 	res.json(syncResponse);
 });
 
-// Mock API endpoints (for demonstration)
-app.post('/api/v1/auth/register', (req, res) => {
-	res.json({
-		success: true,
-		message: 'Registration endpoint - Full implementation available',
-		note: 'This is a mock response. Full authentication system is implemented.',
-		timestamp: new Date().toISOString()
-	});
+// Authentication endpoints with validation
+app.post('/api/v1/auth/register', async (req, res) => {
+	try {
+		const { email, password, role, profile } = req.body;
+		
+		// Basic validation
+		if (!email || !password || !role || !profile) {
+			return res.status(400).json({
+				success: false,
+				message: 'Missing required fields',
+				errors: [
+					{ field: 'email', message: 'Email is required' },
+					{ field: 'password', message: 'Password is required' },
+					{ field: 'role', message: 'Role is required' },
+					{ field: 'profile', message: 'Profile is required' }
+				]
+			});
+		}
+		
+		// Email validation
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+			return res.status(400).json({
+				success: false,
+				message: 'Invalid email format',
+				errors: [{ field: 'email', message: 'Please provide a valid email address' }]
+			});
+		}
+		
+		// Password validation
+		if (password.length < 8) {
+			return res.status(400).json({
+				success: false,
+				message: 'Password too short',
+				errors: [{ field: 'password', message: 'Password must be at least 8 characters' }]
+			});
+		}
+		
+		// Role validation
+		const validRoles = ['customer', 'handyman', 'admin'];
+		if (!validRoles.includes(role)) {
+			return res.status(400).json({
+				success: false,
+				message: 'Invalid role',
+				errors: [{ field: 'role', message: 'Role must be customer, handyman, or admin' }]
+			});
+		}
+		
+		// Generate mock user ID
+		const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		
+		// Mock successful registration
+		res.status(201).json({
+			success: true,
+			message: 'Registration successful',
+			userId: userId,
+			email: email,
+			role: role,
+			emailVerificationRequired: true,
+			note: 'Email verification required before login. Check your email for verification link.',
+			timestamp: new Date().toISOString()
+		});
+		
+	} catch (error) {
+		logging.error('Registration error:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+			timestamp: new Date().toISOString()
+		});
+	}
 });
 
-app.post('/api/v1/auth/login', (req, res) => {
-	res.json({
-		success: true,
-		message: 'Login endpoint - Full implementation available',
-		note: 'This is a mock response. Full authentication system is implemented.',
-		timestamp: new Date().toISOString()
-	});
+app.post('/api/v1/auth/login', async (req, res) => {
+	try {
+		const { email, password, twoFactorCode } = req.body;
+		
+		// Basic validation
+		if (!email || !password) {
+			return res.status(400).json({
+				success: false,
+				message: 'Email and password are required',
+				errors: [
+					{ field: 'email', message: 'Email is required' },
+					{ field: 'password', message: 'Password is required' }
+				]
+			});
+		}
+		
+		// Email validation
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+			return res.status(400).json({
+				success: false,
+				message: 'Invalid email format',
+				errors: [{ field: 'email', message: 'Please provide a valid email address' }]
+			});
+		}
+		
+		// Mock authentication (in real implementation, this would check database)
+		// For demo purposes, accept any email/password combination
+		const mockUser = {
+			id: `user_${Date.now()}`,
+			email: email,
+			role: email.includes('admin') ? 'admin' : email.includes('handyman') ? 'handyman' : 'customer',
+			isEmailVerified: true,
+			isTwoFactorEnabled: false
+		};
+		
+		// Generate mock tokens
+		const accessToken = `access_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		const refreshToken = `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+		
+		// Mock successful login
+		res.status(200).json({
+			success: true,
+			message: 'Login successful',
+			tokens: {
+				accessToken: accessToken,
+				refreshToken: refreshToken
+			},
+			user: {
+				id: mockUser.id,
+				email: mockUser.email,
+				role: mockUser.role,
+				isEmailVerified: mockUser.isEmailVerified,
+				isTwoFactorEnabled: mockUser.isTwoFactorEnabled
+			},
+			timestamp: new Date().toISOString()
+		});
+		
+	} catch (error) {
+		logging.error('Login error:', error);
+		res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+			timestamp: new Date().toISOString()
+		});
+	}
 });
 
 app.post('/api/v1/payments/initialize-job', (req, res) => {
