@@ -12,9 +12,13 @@ import path from 'path';
 
 const application = express();
 
-logging.info('-------------------------------------------');
-logging.info('Starting the Handyman Management API');
-logging.info('-------------------------------------------');
+// Only log in development or if not in Vercel environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+	logging.info('-------------------------------------------');
+	logging.info('Starting the Handyman Management API');
+	logging.info('-------------------------------------------');
+}
+
 application.use(express.json());
 application.use(express.urlencoded({ extended: true }));
 application.use(cookieParser());
@@ -22,20 +26,29 @@ application.use(cookieParser());
 // Serve static files from public directory
 application.use(express.static(path.join(__dirname, '../public')));
 
-logging.info('-------------------------------------------');
-logging.info('Logging & Configuration');
-logging.info('-------------------------------------------');
+// Only log in development or if not in Vercel environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+	logging.info('-------------------------------------------');
+	logging.info('Logging & Configuration');
+	logging.info('-------------------------------------------');
+}
 application.use(loggingHandler);
 application.use(corsHandler);
 
-logging.info('-------------------------------------------');
-logging.info('Rate Limiting');
-logging.info('-------------------------------------------');
+// Only log in development or if not in Vercel environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+	logging.info('-------------------------------------------');
+	logging.info('Rate Limiting');
+	logging.info('-------------------------------------------');
+}
 application.use(apiLimiter);
 
-logging.info('-------------------------------------------');
-logging.info('API Routes');
-logging.info('-------------------------------------------');
+// Only log in development or if not in Vercel environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+	logging.info('-------------------------------------------');
+	logging.info('API Routes');
+	logging.info('-------------------------------------------');
+}
 // Documentation and utility routes
 application.use('/', docsRoutes);
 
@@ -45,9 +58,12 @@ application.use('/api', inngestRoutes);
 // v1 api routes
 application.use('/', routes);
 
-logging.info('-------------------------------------------');
-logging.info('Errors Handling');
-logging.info('-------------------------------------------');
+// Only log in development or if not in Vercel environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+	logging.info('-------------------------------------------');
+	logging.info('Errors Handling');
+	logging.info('-------------------------------------------');
+}
 application.use(errorHandler);
 
 export { application };
