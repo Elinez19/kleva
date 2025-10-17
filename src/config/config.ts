@@ -12,8 +12,23 @@ export const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 3006;
 export const MONGODB_URI = process.env.MONGODB_URI;
 
 // JWT Configuration
-export const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key';
+export const JWT_SECRET =
+	process.env.JWT_SECRET ||
+	(() => {
+		if (process.env.NODE_ENV === 'production') {
+			throw new Error('JWT_SECRET environment variable is required in production');
+		}
+		return 'dev-secret-key-only';
+	})();
+
+export const JWT_REFRESH_SECRET =
+	process.env.JWT_REFRESH_SECRET ||
+	(() => {
+		if (process.env.NODE_ENV === 'production') {
+			throw new Error('JWT_REFRESH_SECRET environment variable is required in production');
+		}
+		return 'dev-refresh-secret-key-only';
+	})();
 export const JWT_ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || '15m';
 export const JWT_REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || '7d';
 

@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { HTTPSTATUS } from '../constants/http.constants';
+import { FRONTEND_URL } from '../config/config';
 
 export function corsHandler(req: Request, res: Response, next: NextFunction): any {
-	const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000'];
+	// Use FRONTEND_URL from environment, fallback to localhost for development
+	const allowedOrigins = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : ['http://localhost:5173', 'http://localhost:3000'];
+
 	const origin = req.header('origin');
 
 	if (allowedOrigins.includes(origin || '')) {

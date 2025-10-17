@@ -58,8 +58,11 @@ NODE_ENV=development
 # Server
 PORT=3006
 
-# MongoDB
-MONGODB_URI=mongodb://localhost:27017/handyman-app
+# MongoDB Atlas (Production)
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/handyman-app?retryWrites=true&w=majority
+
+# Local Development (Optional)
+# MONGODB_URI=mongodb://localhost:27017/handyman-app
 
 # JWT
 JWT_SECRET=your-super-secret-jwt-key
@@ -374,5 +377,4 @@ ISC
 For issues or questions, please refer to:
 
 -   [AUTH_README.md](./AUTH_README.md) for authentication details
--   [IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md) for technical overview
-"# kleva" 
+-   [IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md) for technical overview "# kleva"
