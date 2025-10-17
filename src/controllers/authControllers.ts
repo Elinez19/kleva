@@ -640,20 +640,23 @@ export const approveHandyman = async (req: Request, res: Response): Promise<void
 
 		// Update approval status
 		userData.approvalStatus = 'approved';
-		userData.approvedBy = req.user.id;
+		userData.approvedBy = req.user?.userId as any;
 		userData.approvedAt = new Date();
 		await userData.save();
 
 		// Send approval notification email
 		try {
-			const { safeInngestSend } = await import('../services/authServices');
-			await safeInngestSend('handyman/approved', {
-				userId: userData._id.toString(),
-				email: userData.email,
-				firstName: userData.profile?.firstName || 'User',
-				lastName: userData.profile?.lastName || '',
-				approvedBy: req.user.id,
-				approvedAt: userData.approvedAt
+			const { inngest } = await import('../config/inngest');
+			await inngest.send({
+				name: 'handyman/approved',
+				data: {
+					userId: userData._id.toString(),
+					email: userData.email,
+					firstName: userData.profile?.firstName || 'User',
+					lastName: userData.profile?.lastName || '',
+					approvedBy: req.user?.userId,
+					approvedAt: userData.approvedAt
+				}
 			});
 		} catch (emailError) {
 			console.warn('Failed to send approval notification:', emailError);
@@ -728,21 +731,24 @@ export const rejectHandyman = async (req: Request, res: Response): Promise<void>
 		// Update rejection status
 		userData.approvalStatus = 'rejected';
 		userData.rejectionReason = reason || 'No reason provided';
-		userData.approvedBy = req.user.id;
+		userData.approvedBy = req.user?.userId as any;
 		userData.approvedAt = new Date();
 		await userData.save();
 
 		// Send rejection notification email
 		try {
-			const { safeInngestSend } = await import('../services/authServices');
-			await safeInngestSend('handyman/rejected', {
-				userId: userData._id.toString(),
-				email: userData.email,
-				firstName: userData.profile?.firstName || 'User',
-				lastName: userData.profile?.lastName || '',
-				rejectedBy: req.user.id,
-				rejectionReason: userData.rejectionReason,
-				rejectedAt: userData.approvedAt
+			const { inngest } = await import('../config/inngest');
+			await inngest.send({
+				name: 'handyman/rejected',
+				data: {
+					userId: userData._id.toString(),
+					email: userData.email,
+					firstName: userData.profile?.firstName || 'User',
+					lastName: userData.profile?.lastName || '',
+					rejectedBy: req.user?.userId,
+					rejectionReason: userData.rejectionReason,
+					rejectedAt: userData.approvedAt
+				}
 			});
 		} catch (emailError) {
 			console.warn('Failed to send rejection notification:', emailError);
