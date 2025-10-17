@@ -128,7 +128,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"customer@handyman.com\",\n  \"password\": \"Customer123!\",\n  \"role\": \"customer\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1234567890\",\n    \"address\": \"123 Main St, City, State\",\n    \"preferredContactMethod\": \"email\"\n  }\n}"
+							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\",\n  \"role\": \"customer\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1234567890\",\n    \"address\": \"123 Main St, City, State\",\n    \"preferredContactMethod\": \"email\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/register",
@@ -167,7 +167,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"handyman@handyman.com\",\n  \"password\": \"Handyman123!\",\n  \"role\": \"handyman\",\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Smith\",\n    \"phone\": \"+1234567891\",\n    \"address\": \"456 Oak Ave, City, State\",\n    \"skills\": [\"plumbing\", \"electrical\", \"carpentry\"],\n    \"experience\": 5,\n    \"hourlyRate\": 25,\n    \"availability\": \"Monday-Friday 8AM-6PM\",\n    \"bio\": \"Experienced handyman with 5 years of service\",\n    \"certifications\": [\"Licensed Plumber\", \"Electrical Safety Certified\"]\n  }\n}"
+							"raw": "{\n  \"email\": \"{{handymanEmail}}\",\n  \"password\": \"{{handymanPassword}}\",\n  \"role\": \"handyman\",\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Smith\",\n    \"phone\": \"+1234567891\",\n    \"address\": \"456 Oak Ave, City, State\",\n    \"skills\": [\"plumbing\", \"electrical\", \"carpentry\"],\n    \"experience\": 5,\n    \"hourlyRate\": 25,\n    \"availability\": \"Monday-Friday 8AM-6PM\",\n    \"bio\": \"Experienced handyman with 5 years of service\",\n    \"certifications\": [\"Licensed Plumber\", \"Electrical Safety Certified\"]\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/register",
@@ -190,7 +190,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@handyman.com\",\n  \"password\": \"Admin123!\",\n  \"role\": \"admin\",\n  \"profile\": {\n    \"firstName\": \"Admin\",\n    \"lastName\": \"User\",\n    \"phone\": \"+1234567892\",\n    \"department\": \"Management\"\n  }\n}"
+							"raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\",\n  \"role\": \"admin\",\n  \"profile\": {\n    \"firstName\": \"Admin\",\n    \"lastName\": \"User\",\n    \"phone\": \"+1234567892\",\n    \"department\": \"Management\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/register",
@@ -260,7 +260,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"customer@handyman.com\",\n  \"password\": \"Customer123!\"\n}"
+							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/login",
@@ -283,7 +283,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"handyman@handyman.com\",\n  \"password\": \"Handyman123!\"\n}"
+							"raw": "{\n  \"email\": \"{{handymanEmail}}\",\n  \"password\": \"{{handymanPassword}}\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/login",
@@ -324,7 +324,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"approved@handyman.com\",\n  \"password\": \"Handyman456!\"\n}"
+							"raw": "{\n  \"email\": \"{{approvedHandymanEmail}}\",\n  \"password\": \"{{approvedHandymanPassword}}\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/login",
@@ -365,7 +365,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@handyman.com\",\n  \"password\": \"Admin123!\"\n}"
+							"raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/login",
@@ -591,7 +591,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"customer@handyman.com\",\n  \"password\": \"Customer123!\",\n  \"twoFactorToken\": \"123456\"\n}"
+							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\",\n  \"twoFactorToken\": \"123456\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/login",

@@ -2,5 +2,13 @@ node_modules
 dist
 .qodo
 .env*
+.env.local
+.env.development
+.env.production
+.env.test
 .vercel
 .cursor/
+# Security
+*.key
+*.pem
+secrets.json
