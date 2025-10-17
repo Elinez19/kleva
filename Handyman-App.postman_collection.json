@@ -460,6 +460,81 @@
 			"description": "Payment processing endpoints using Paystack."
 		},
 		{
+			"name": "Admin Management",
+			"item": [
+				{
+					"name": "Get Pending Handymen",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/pending-handymen",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "pending-handymen"]
+						},
+						"description": "Get list of handymen pending admin approval. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Approve Handyman",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/approve-handyman/{{handymanUserId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "approve-handyman", "{{handymanUserId}}"]
+						},
+						"description": "Approve a handyman account. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Handyman",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Insufficient experience or incomplete profile\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/reject-handyman/{{handymanUserId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "reject-handyman", "{{handymanUserId}}"]
+						},
+						"description": "Reject a handyman account with optional reason. Requires admin authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Admin endpoints for managing handyman approvals."
+		},
+		{
 			"name": "Email Testing",
 			"item": [
 				{
@@ -546,6 +621,11 @@
 		},
 		{
 			"key": "inngestSignature",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "handymanUserId",
 			"value": "",
 			"type": "string"
 		}
