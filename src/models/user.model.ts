@@ -75,6 +75,27 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
 		loginAttempts: {
 			type: Number,
 			default: 0
+		},
+		// Admin approval for handymen
+		approvalStatus: {
+			type: String,
+			enum: ['pending', 'approved', 'rejected'],
+			default: function() {
+				return this.role === 'handyman' ? 'pending' : 'approved';
+			}
+		},
+		approvedBy: {
+			type: Schema.Types.ObjectId,
+			ref: 'User',
+			default: null
+		},
+		approvedAt: {
+			type: Date,
+			default: null
+		},
+		rejectionReason: {
+			type: String,
+			default: null
 		}
 	},
 	{
@@ -89,6 +110,8 @@ userSchema.index({ isActive: 1 });
 userSchema.index({ emailVerificationToken: 1 });
 userSchema.index({ passwordResetToken: 1 });
 userSchema.index({ 'profile.phone': 1 }); // Index for phone number duplicate checking
+userSchema.index({ approvalStatus: 1 }); // Index for approval status queries
+userSchema.index({ role: 1, approvalStatus: 1 }); // Compound index for handyman approval queries
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {

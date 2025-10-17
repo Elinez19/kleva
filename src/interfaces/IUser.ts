@@ -55,6 +55,12 @@ export interface IUser extends Document {
 	accountLockedUntil?: Date;
 	loginAttempts: number;
 
+	// Admin approval for handymen
+	approvalStatus: 'pending' | 'approved' | 'rejected';
+	approvedBy?: string;
+	approvedAt?: Date;
+	rejectionReason?: string;
+
 	// Timestamps
 	createdAt: Date;
 	updatedAt: Date;

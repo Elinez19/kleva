@@ -63,4 +63,11 @@ router.get('/users/stats', authControllers.getUserStats);
 // Test Resend endpoint
 router.post('/test-resend', authControllers.testResend);
 
+// Admin routes for handyman approval management
+router.get('/admin/pending-handymen', authenticate, authControllers.getPendingHandymen);
+
+router.post('/admin/approve-handyman/:userId', authenticate, authControllers.approveHandyman);
+
+router.post('/admin/reject-handyman/:userId', authenticate, authControllers.rejectHandyman);
+
 export default router;

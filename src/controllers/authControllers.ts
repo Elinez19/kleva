@@ -476,6 +476,24 @@ export const getUserStats = async (req: Request, res: Response): Promise<void> =
 			return acc;
 		}, {} as Record<string, number>);
 
+		// Get handyman approval statistics
+		const handymanApprovals = await UserModel.aggregate([
+			{
+				$match: { role: 'handyman' }
+			},
+			{
+				$group: {
+					_id: '$approvalStatus',
+					count: { $sum: 1 }
+				}
+			}
+		]);
+
+		const approvalStats = handymanApprovals.reduce((acc, item) => {
+			acc[item._id] = item.count;
+			return acc;
+		}, {} as Record<string, number>);
+
 		res.status(HTTPSTATUS.OK).json({
 			success: true,
 			message: 'User statistics',
@@ -487,6 +505,11 @@ export const getUserStats = async (req: Request, res: Response): Promise<void> =
 					customer: roleStats.customer || 0,
 					handyman: roleStats.handyman || 0,
 					admin: roleStats.admin || 0
+				},
+				handymanApprovals: {
+					pending: approvalStats.pending || 0,
+					approved: approvalStats.approved || 0,
+					rejected: approvalStats.rejected || 0
 				}
 			},
 			timestamp: new Date().toISOString()
@@ -527,6 +550,221 @@ export const testResend = async (req: Request, res: Response): Promise<void> => 
 		res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
 			success: false,
 			message: 'Failed to send test email',
+			error: error.message,
+			timestamp: new Date().toISOString()
+		});
+	}
+};
+
+// Admin endpoints for handyman approval management
+
+// Get pending handymen
+export const getPendingHandymen = async (req: Request, res: Response): Promise<void> => {
+	try {
+		// Check if user is admin
+		if (req.user?.role !== 'admin') {
+			res.status(HTTPSTATUS.FORBIDDEN).json({
+				success: false,
+				message: 'Admin access required',
+				errors: [{ field: 'authorization', message: 'Only admins can access this endpoint' }]
+			});
+			return;
+		}
+
+		const pendingHandymen = await UserModel.find({
+			role: 'handyman',
+			approvalStatus: 'pending'
+		}).select('-password -twoFactorSecret -twoFactorBackupCodes -emailVerificationToken -passwordResetToken');
+
+		res.status(HTTPSTATUS.OK).json({
+			success: true,
+			message: 'Pending handymen retrieved successfully',
+			data: {
+				pendingHandymen,
+				count: pendingHandymen.length
+			},
+			timestamp: new Date().toISOString()
+		});
+	} catch (error: any) {
+		res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+			success: false,
+			message: 'Internal server error',
+			error: error.message,
+			timestamp: new Date().toISOString()
+		});
+	}
+};
+
+// Approve handyman
+export const approveHandyman = async (req: Request, res: Response): Promise<void> => {
+	try {
+		// Check if user is admin
+		if (req.user?.role !== 'admin') {
+			res.status(HTTPSTATUS.FORBIDDEN).json({
+				success: false,
+				message: 'Admin access required',
+				errors: [{ field: 'authorization', message: 'Only admins can approve handymen' }]
+			});
+			return;
+		}
+
+		const { userId } = req.params;
+		const userData = await UserModel.findById(userId);
+
+		if (!userData) {
+			res.status(HTTPSTATUS.NOT_FOUND).json({
+				success: false,
+				message: 'User not found',
+				errors: [{ field: 'userId', message: 'No user found with this ID' }]
+			});
+			return;
+		}
+
+		if (userData.role !== 'handyman') {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Invalid user role',
+				errors: [{ field: 'role', message: 'Only handymen can be approved' }]
+			});
+			return;
+		}
+
+		if (userData.approvalStatus === 'approved') {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Already approved',
+				errors: [{ field: 'approval', message: 'This handyman is already approved' }]
+			});
+			return;
+		}
+
+		// Update approval status
+		userData.approvalStatus = 'approved';
+		userData.approvedBy = req.user.id;
+		userData.approvedAt = new Date();
+		await userData.save();
+
+		// Send approval notification email
+		try {
+			const { safeInngestSend } = await import('../services/authServices');
+			await safeInngestSend('handyman/approved', {
+				userId: userData._id.toString(),
+				email: userData.email,
+				firstName: userData.profile?.firstName || 'User',
+				lastName: userData.profile?.lastName || '',
+				approvedBy: req.user.id,
+				approvedAt: userData.approvedAt
+			});
+		} catch (emailError) {
+			console.warn('Failed to send approval notification:', emailError);
+		}
+
+		res.status(HTTPSTATUS.OK).json({
+			success: true,
+			message: 'Handyman approved successfully',
+			data: {
+				userId: userData._id.toString(),
+				email: userData.email,
+				approvalStatus: userData.approvalStatus,
+				approvedBy: userData.approvedBy,
+				approvedAt: userData.approvedAt
+			},
+			timestamp: new Date().toISOString()
+		});
+	} catch (error: any) {
+		res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+			success: false,
+			message: 'Internal server error',
+			error: error.message,
+			timestamp: new Date().toISOString()
+		});
+	}
+};
+
+// Reject handyman
+export const rejectHandyman = async (req: Request, res: Response): Promise<void> => {
+	try {
+		// Check if user is admin
+		if (req.user?.role !== 'admin') {
+			res.status(HTTPSTATUS.FORBIDDEN).json({
+				success: false,
+				message: 'Admin access required',
+				errors: [{ field: 'authorization', message: 'Only admins can reject handymen' }]
+			});
+			return;
+		}
+
+		const { userId } = req.params;
+		const { reason } = req.body;
+		const userData = await UserModel.findById(userId);
+
+		if (!userData) {
+			res.status(HTTPSTATUS.NOT_FOUND).json({
+				success: false,
+				message: 'User not found',
+				errors: [{ field: 'userId', message: 'No user found with this ID' }]
+			});
+			return;
+		}
+
+		if (userData.role !== 'handyman') {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Invalid user role',
+				errors: [{ field: 'role', message: 'Only handymen can be rejected' }]
+			});
+			return;
+		}
+
+		if (userData.approvalStatus === 'rejected') {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Already rejected',
+				errors: [{ field: 'approval', message: 'This handyman is already rejected' }]
+			});
+			return;
+		}
+
+		// Update rejection status
+		userData.approvalStatus = 'rejected';
+		userData.rejectionReason = reason || 'No reason provided';
+		userData.approvedBy = req.user.id;
+		userData.approvedAt = new Date();
+		await userData.save();
+
+		// Send rejection notification email
+		try {
+			const { safeInngestSend } = await import('../services/authServices');
+			await safeInngestSend('handyman/rejected', {
+				userId: userData._id.toString(),
+				email: userData.email,
+				firstName: userData.profile?.firstName || 'User',
+				lastName: userData.profile?.lastName || '',
+				rejectedBy: req.user.id,
+				rejectionReason: userData.rejectionReason,
+				rejectedAt: userData.approvedAt
+			});
+		} catch (emailError) {
+			console.warn('Failed to send rejection notification:', emailError);
+		}
+
+		res.status(HTTPSTATUS.OK).json({
+			success: true,
+			message: 'Handyman rejected successfully',
+			data: {
+				userId: userData._id.toString(),
+				email: userData.email,
+				approvalStatus: userData.approvalStatus,
+				rejectionReason: userData.rejectionReason,
+				rejectedBy: userData.approvedBy,
+				rejectedAt: userData.approvedAt
+			},
+			timestamp: new Date().toISOString()
+		});
+	} catch (error: any) {
+		res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+			success: false,
+			message: 'Internal server error',
 			error: error.message,
 			timestamp: new Date().toISOString()
 		});

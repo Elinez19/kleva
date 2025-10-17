@@ -190,6 +190,15 @@ export const login = async (data: LoginInput, deviceInfo: string, ipAddress: str
 			throw new Error('Please verify your email before logging in');
 		}
 
+		// Check approval status for handymen
+		if (user.role === 'handyman' && user.approvalStatus !== 'approved') {
+			if (user.approvalStatus === 'pending') {
+				throw new Error('Your handyman account is pending admin approval');
+			} else if (user.approvalStatus === 'rejected') {
+				throw new Error(`Your handyman account has been rejected. Reason: ${user.rejectionReason || 'No reason provided'}`);
+			}
+		}
+
 		// Reset login attempts on successful password verification
 		user.loginAttempts = 0;
 		user.accountLockedUntil = undefined;
