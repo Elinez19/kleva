@@ -88,6 +88,7 @@ userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
 userSchema.index({ emailVerificationToken: 1 });
 userSchema.index({ passwordResetToken: 1 });
+userSchema.index({ 'profile.phone': 1 }); // Index for phone number duplicate checking
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {

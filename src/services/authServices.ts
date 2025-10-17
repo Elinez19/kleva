@@ -36,10 +36,18 @@ const safeInngestSend = async (eventName: string, data: any): Promise<void> => {
 // Register user
 export const registerUser = async (data: RegisterInput, ipAddress: string): Promise<RegisterResponse> => {
 	try {
-		// Check if user already exists
+		// Check if user already exists by email
 		const existingUser = await UserModel.findOne({ email: data.email });
 		if (existingUser) {
 			throw new Error('Email already registered');
+		}
+
+		// Check if phone number already exists (if provided)
+		if (data.profile?.phone) {
+			const existingPhone = await UserModel.findOne({ 'profile.phone': data.profile.phone });
+			if (existingPhone) {
+				throw new Error('Phone number already registered');
+			}
 		}
 
 		// Generate email verification token

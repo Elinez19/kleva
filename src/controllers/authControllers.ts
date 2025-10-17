@@ -443,7 +443,7 @@ export const getTokenInfo = async (req: Request, res: Response): Promise<void> =
 				sessionId: decoded.sessionId,
 				issuedAt: new Date(decoded.iat * 1000).toISOString(),
 				expiresAt: new Date(decoded.exp * 1000).toISOString(),
-				timeRemaining: Math.max(0, (decoded.exp * 1000) - Date.now())
+				timeRemaining: Math.max(0, decoded.exp * 1000 - Date.now())
 			},
 			timestamp: new Date().toISOString()
 		});
@@ -461,7 +461,7 @@ export const getUserStats = async (req: Request, res: Response): Promise<void> =
 		const totalUsers = await UserModel.countDocuments();
 		const verifiedUsers = await UserModel.countDocuments({ isEmailVerified: true });
 		const unverifiedUsers = await UserModel.countDocuments({ isEmailVerified: false });
-		
+
 		const usersByRole = await UserModel.aggregate([
 			{
 				$group: {
@@ -507,7 +507,7 @@ export const testResend = async (req: Request, res: Response): Promise<void> => 
 		// Create a simple test email function
 		const { Resend } = await import('resend');
 		const { EMAIL } = await import('../config/config');
-		
+
 		const resend = new Resend(EMAIL.RESEND_API_KEY);
 
 		const result = await resend.emails.send({
