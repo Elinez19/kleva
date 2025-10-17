@@ -101,13 +101,36 @@ export const registerUser = async (data: RegisterInput, ipAddress: string): Prom
 // Verify email
 export const verifyEmail = async (token: string): Promise<{ success: boolean; message: string }> => {
 	try {
+		// Validate token format (should be 64 character hex string)
+		if (!token || typeof token !== 'string' || token.length !== 64 || !/^[a-f0-9]+$/i.test(token)) {
+			throw new Error('Invalid verification token format');
+		}
+
 		const user = await UserModel.findOne({
 			emailVerificationToken: token,
 			emailVerificationExpires: { $gt: new Date() }
 		});
 
 		if (!user) {
-			throw new Error('Invalid or expired verification token');
+			// Check if token exists but is expired
+			const expiredUser = await UserModel.findOne({
+				emailVerificationToken: token,
+				emailVerificationExpires: { $lte: new Date() }
+			});
+
+			if (expiredUser) {
+				throw new Error('Verification token has expired. Please request a new verification email.');
+			}
+
+			throw new Error('Invalid verification token. Please check your email for the correct verification link.');
+		}
+
+		// Check if already verified
+		if (user.isEmailVerified) {
+			return {
+				success: true,
+				message: 'Email is already verified'
+			};
 		}
 
 		user.isEmailVerified = true;
@@ -131,7 +154,7 @@ export const verifyEmail = async (token: string): Promise<{ success: boolean; me
 
 		return {
 			success: true,
-			message: 'Email verified successfully'
+			message: 'Email verified successfully. You can now log in to your account.'
 		};
 	} catch (error: any) {
 		throw new Error(error.message || 'Email verification failed');

@@ -200,6 +200,43 @@
 						"description": "Register a new admin account. Admin accounts are auto-approved after email verification."
 					},
 					"response": []
+				},
+				{
+					"name": "Register Test User for Email Verification",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    console.log('✅ Registration successful - check your email for verification link');",
+									"    console.log('📧 The verification email should contain a link to verify the account');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"TestUser123!\",\n  \"role\": \"customer\",\n  \"profile\": {\n    \"firstName\": \"Test\",\n    \"lastName\": \"User\",\n    \"phone\": \"+1234567899\",\n    \"address\": \"123 Test St, Test City, TS\",\n    \"preferredContactMethod\": \"email\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "register"]
+						},
+						"description": "Register a test user to receive a real verification email with a valid token."
+					},
+					"response": []
 				}
 			],
 			"description": "User registration endpoints for different roles."
@@ -218,6 +255,20 @@
 							"path": ["api", "v1", "auth", "verify-email", "{{verificationToken}}"]
 						},
 						"description": "Verify email address using verification token sent to user's email."
+					},
+					"response": []
+				},
+				{
+					"name": "Test Email Verification (Seed Data)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/verify-email/test-verification-token-12345",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "verify-email", "test-verification-token-12345"]
+						},
+						"description": "Test email verification with a sample token. This will fail unless you update the seed data with this token."
 					},
 					"response": []
 				}

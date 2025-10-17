@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import UserModel from '../models/user.model';
 import { connectDb } from '../database/db';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 // Seed data
 const seedData = async () => {
@@ -188,6 +189,7 @@ const seedData = async () => {
 
 		// Unverified email user
 		const unverifiedPassword = await bcrypt.hash('Unverified123!', 10);
+		const testVerificationToken = crypto.randomBytes(32).toString('hex');
 		const unverifiedUser = await UserModel.create({
 			email: 'unverified@handyman.com',
 			password: unverifiedPassword,
@@ -200,12 +202,15 @@ const seedData = async () => {
 				preferredContactMethod: 'email'
 			},
 			isEmailVerified: false,
-			emailVerificationToken: 'test-verification-token-12345',
+			emailVerificationToken: testVerificationToken,
 			emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
 			approvalStatus: 'approved',
 			isActive: true,
 			loginAttempts: 0
 		});
+
+		console.log('🔗 Test verification token:', testVerificationToken);
+		console.log('🔗 Test verification URL:', `https://kleva-server.vercel.app/api/v1/auth/verify-email/${testVerificationToken}`);
 
 		console.log('✅ Unverified user created:', unverifiedUser.email);
 
