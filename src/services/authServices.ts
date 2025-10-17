@@ -91,7 +91,12 @@ export const registerUser = async (data: RegisterInput, ipAddress: string): Prom
 		return {
 			success: true,
 			message: 'Registration successful. Please check your email to verify your account.',
-			userId: user._id.toString()
+			userId: user._id.toString(),
+			// Include verification token for development/testing (remove in production)
+			...(process.env.NODE_ENV !== 'production' && {
+				verificationToken: verificationToken,
+				verificationUrl: `https://kleva-server.vercel.app/api/v1/auth/verify-email/${verificationToken}`
+			})
 		};
 	} catch (error: any) {
 		throw new Error(error.message || 'Registration failed');

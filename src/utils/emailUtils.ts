@@ -3,7 +3,8 @@ import { EMAIL, FRONTEND_URL } from '../config/config';
 
 const resend = new Resend(EMAIL.RESEND_API_KEY);
 
-const FROM_EMAIL = 'Handyman Management <noreply@anorateck.com>'; // Using verified custom domain
+// Use Resend's default domain if custom domain is not verified
+const FROM_EMAIL = EMAIL.RESEND_API_KEY ? 'Handyman Management <onboarding@resend.dev>' : 'Handyman Management <noreply@anorateck.com>';
 
 export const sendVerificationEmail = async (email: string, token: string): Promise<void> => {
 	const verificationUrl = `https://kleva-server.vercel.app/api/v1/auth/verify-email/${token}`;
@@ -45,15 +46,28 @@ export const sendVerificationEmail = async (email: string, token: string): Promi
 	`;
 
 	try {
-		await resend.emails.send({
+		console.log('📧 Sending verification email to:', email);
+		console.log('📧 Using FROM_EMAIL:', FROM_EMAIL);
+		console.log('📧 Verification URL:', verificationUrl);
+
+		if (!EMAIL.RESEND_API_KEY) {
+			console.warn('⚠️ RESEND_API_KEY not configured, email will not be sent');
+			console.log('📧 Would send verification email with token:', token);
+			return; // Don't throw error in development
+		}
+
+		const result = await resend.emails.send({
 			from: FROM_EMAIL,
 			to: email,
 			subject: 'Verify Your Email Address',
 			html: htmlContent
 		});
+
+		console.log('✅ Verification email sent successfully:', result);
 	} catch (error) {
-		console.error('Error sending verification email:', error);
-		throw new Error('Failed to send verification email');
+		console.error('❌ Error sending verification email:', error);
+		console.error('📧 Email details:', { to: email, from: FROM_EMAIL, hasApiKey: !!EMAIL.RESEND_API_KEY });
+		throw new Error(`Failed to send verification email: ${error.message}`);
 	}
 };
 
