@@ -2,8 +2,9 @@
 	"info": {
 		"_postman_id": "handyman-auth-collection-2024",
 		"name": "Handyman Management App - Complete API",
-		"description": "Complete authentication system with 2FA, email verification, password reset, session management, and Paystack payment integration for the Handyman Management App.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"description": "Complete authentication system with MongoDB integration, email verification, session management, and payment processing for the Handyman Management App.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "handyman-api-v2"
 	},
 	"item": [
 		{
@@ -52,6 +53,26 @@
 					"response": []
 				},
 				{
+					"name": "Postman Collection",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/handyman-app.postman_collection.json",
+							"host": ["{{baseUrl}}"],
+							"path": ["handyman-app.postman_collection.json"]
+						},
+						"description": "Download the complete Postman collection."
+					},
+					"response": []
+				}
+			],
+			"description": "Health check and documentation endpoints."
+		},
+		{
+			"name": "Inngest Integration",
+			"item": [
+				{
 					"name": "Inngest Health Check",
 					"request": {
 						"method": "GET",
@@ -61,7 +82,7 @@
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "inngest"]
 						},
-						"description": "Check Inngest integration status and configuration."
+						"description": "Check Inngest integration health and configuration status."
 					},
 					"response": []
 				},
@@ -75,16 +96,12 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"url\": \"{{baseUrl}}/api/inngest\"\n}"
-						},
 						"url": {
 							"raw": "{{baseUrl}}/api/inngest",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "inngest"]
 						},
-						"description": "Sync Inngest functions with the dashboard."
+						"description": "Sync Inngest functions and configuration."
 					},
 					"response": []
 				},
@@ -96,45 +113,33 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json"
+							},
+							{
+								"key": "X-Inngest-Signature",
+								"value": "{{inngestSignature}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"auth/user.registered\",\n  \"data\": {\n    \"userId\": \"123\",\n    \"email\": \"user@example.com\"\n  }\n}"
+							"raw": "{\n  \"name\": \"auth/email.verification.requested\",\n  \"data\": {\n    \"email\": \"test@example.com\",\n    \"token\": \"verification-token-123\",\n    \"userId\": \"user-123\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/inngest",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "inngest"]
 						},
-						"description": "Send events to Inngest for function execution."
+						"description": "Inngest webhook endpoint for processing events."
 					},
 					"response": []
 				}
 			],
-			"description": "API health checks, documentation, and Inngest integration endpoints"
+			"description": "Inngest event processing and webhook endpoints."
 		},
 		{
 			"name": "Authentication",
 			"item": [
 				{
 					"name": "Register Customer",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    const response = pm.response.json();",
-									"    if (response.userId) {",
-									"        pm.environment.set('userId', response.userId);",
-									"    }",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -145,35 +150,19 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Customer123\",\n  \"role\": \"customer\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1234567890\",\n    \"address\": \"123 Main Street, New York\",\n    \"preferredContactMethod\": \"email\"\n  }\n}"
+							"raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Customer123!\",\n  \"role\": \"customer\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1234567890\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/register",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "register"]
 						},
-						"description": "Register a new customer account. Email verification required before login."
+						"description": "Register a new customer account."
 					},
 					"response": []
 				},
 				{
 					"name": "Register Handyman",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    const response = pm.response.json();",
-									"    if (response.userId) {",
-									"        pm.environment.set('handymanUserId', response.userId);",
-									"    }",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -184,14 +173,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"handyman@example.com\",\n  \"password\": \"Handyman123\",\n  \"role\": \"handyman\",\n  \"profile\": {\n    \"firstName\": \"Mike\",\n    \"lastName\": \"Smith\",\n    \"phone\": \"+1234567891\",\n    \"address\": \"456 Oak Avenue, Boston\",\n    \"skills\": [\"plumbing\", \"electrical\", \"carpentry\"],\n    \"experience\": 10,\n    \"hourlyRate\": 75,\n    \"availability\": \"weekdays 9am-5pm\",\n    \"bio\": \"Experienced handyman with 10 years in residential repairs\",\n    \"certifications\": [\"Licensed Plumber\", \"Certified Electrician\"]\n  }\n}"
+							"raw": "{\n  \"email\": \"handyman@example.com\",\n  \"password\": \"Handyman123!\",\n  \"role\": \"handyman\",\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Smith\",\n    \"phone\": \"+1234567891\",\n    \"skills\": [\"plumbing\", \"electrical\"],\n    \"experience\": \"5 years\",\n    \"hourlyRate\": 25\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/register",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "register"]
 						},
-						"description": "Register a new handyman account with skills and experience."
+						"description": "Register a new handyman account."
 					},
 					"response": []
 				},
@@ -207,14 +196,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin123!\",\n  \"role\": \"admin\",\n  \"profile\": {\n    \"firstName\": \"Admin\",\n    \"lastName\": \"User\",\n    \"phone\": \"+1234567892\",\n    \"department\": \"Operations\"\n  }\n}"
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin123!\",\n  \"role\": \"admin\",\n  \"profile\": {\n    \"firstName\": \"Admin\",\n    \"lastName\": \"User\",\n    \"phone\": \"+1234567892\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/register",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "register"]
 						},
-						"description": "Register a new admin account for platform management."
+						"description": "Register a new admin account."
 					},
 					"response": []
 				},
@@ -224,43 +213,16 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/verify-email/:token",
+							"raw": "{{baseUrl}}/api/v1/auth/verify-email/{{verificationToken}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "verify-email", ":token"],
-							"variable": [
-								{
-									"key": "token",
-									"value": "your-verification-token-here",
-									"description": "Email verification token from email"
-								}
-							]
+							"path": ["api", "v1", "auth", "verify-email", "{{verificationToken}}"]
 						},
-						"description": "Verify email address using the token sent to user's email."
+						"description": "Verify email address using verification token."
 					},
 					"response": []
 				},
 				{
 					"name": "Login",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 200) {",
-									"    const response = pm.response.json();",
-									"    if (response.tokens) {",
-									"        pm.environment.set('accessToken', response.tokens.accessToken);",
-									"        pm.environment.set('refreshToken', response.tokens.refreshToken);",
-									"    }",
-									"    if (response.tempToken) {",
-									"        pm.environment.set('tempToken', response.tempToken);",
-									"    }",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -271,58 +233,39 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Customer123\"\n}"
+							"raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/login",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "login"]
 						},
-						"description": "Login with email and password. Returns access and refresh tokens."
-					},
-					"response": []
-				},
-				{
-					"name": "Login with 2FA",
-					"request": {
-						"method": "POST",
-						"header": [
+						"description": "Login with email and password.",
+						"event": [
 							{
-								"key": "Content-Type",
-								"value": "application/json"
+								"listen": "test",
+								"script": {
+									"exec": [
+										"if (pm.response.code === 200) {",
+										"    const response = pm.response.json();",
+										"    if (response.success && response.data) {",
+										"        pm.environment.set('accessToken', response.data.accessToken);",
+										"        pm.environment.set('refreshToken', response.data.refreshToken);",
+										"        pm.environment.set('userId', response.data.user.id);",
+										"        pm.environment.set('userRole', response.data.user.role);",
+										"        console.log('Tokens saved to environment variables');",
+										"    }",
+										"}"
+									],
+									"type": "text/javascript"
+								}
 							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Customer123\",\n  \"twoFactorCode\": \"123456\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/login",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "login"]
-						},
-						"description": "Login with 2FA code from authenticator app (if 2FA is enabled)."
+						]
 					},
 					"response": []
 				},
 				{
 					"name": "Refresh Token",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 200) {",
-									"    const response = pm.response.json();",
-									"    if (response.accessToken) {",
-									"        pm.environment.set('accessToken', response.accessToken);",
-									"    }",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -340,156 +283,90 @@
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "refresh"]
 						},
-						"description": "Get a new access token using refresh token."
+						"description": "Refresh access token using refresh token.",
+						"event": [
+							{
+								"listen": "test",
+								"script": {
+									"exec": [
+										"if (pm.response.code === 200) {",
+										"    const response = pm.response.json();",
+										"    if (response.success && response.data) {",
+										"        pm.environment.set('accessToken', response.data.accessToken);",
+										"        pm.environment.set('refreshToken', response.data.refreshToken);",
+										"        console.log('Tokens refreshed');",
+										"    }",
+										"}"
+									],
+									"type": "text/javascript"
+								}
+							}
+						]
 					},
 					"response": []
 				},
 				{
 					"name": "Logout",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
 							{
 								"key": "Content-Type",
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/logout",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "logout"]
 						},
-						"description": "Logout and revoke current session."
-					},
-					"response": []
-				}
-			],
-			"description": "User registration, login, logout, and token management"
-		},
-		{
-			"name": "Password Management",
-			"item": [
-				{
-					"name": "Forgot Password",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"customer@example.com\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/forgot-password",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "forgot-password"]
-						},
-						"description": "Request password reset. Sends reset link to email."
+						"description": "Logout and invalidate current session."
 					},
 					"response": []
 				},
 				{
-					"name": "Reset Password",
+					"name": "Revoke All Tokens",
 					"request": {
 						"method": "POST",
 						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
 							{
 								"key": "Content-Type",
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"newPassword\": \"NewPassword123\"\n}"
-						},
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/reset-password/:token",
+							"raw": "{{baseUrl}}/api/v1/auth/revoke-all",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "reset-password", ":token"],
-							"variable": [
-								{
-									"key": "token",
-									"value": "reset-token-from-email",
-									"description": "Password reset token from email"
-								}
-							]
+							"path": ["api", "v1", "auth", "revoke-all"]
 						},
-						"description": "Reset password using token from email."
-					},
-					"response": []
-				},
-				{
-					"name": "Change Password",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"currentPassword\": \"Customer123\",\n  \"newPassword\": \"NewCustomer123\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/change-password",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "change-password"]
-						},
-						"description": "Change password while logged in. Requires current password."
+						"description": "Revoke all tokens for the current user."
 					},
 					"response": []
 				}
 			],
-			"description": "Password reset and change functionality"
+			"description": "Authentication endpoints for registration, login, and session management."
 		},
 		{
-			"name": "Profile Management",
+			"name": "User Management",
 			"item": [
 				{
 					"name": "Get Profile",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/me",
 							"host": ["{{baseUrl}}"],
@@ -500,267 +377,53 @@
 					"response": []
 				},
 				{
-					"name": "Update Profile",
+					"name": "Get Token Info",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PATCH",
+						"method": "GET",
 						"header": [
 							{
-								"key": "Content-Type",
-								"value": "application/json"
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"phone\": \"+1987654321\",\n    \"address\": \"789 New Street, Los Angeles\"\n  }\n}"
-						},
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/me",
+							"raw": "{{baseUrl}}/api/v1/auth/token-info",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "me"]
+							"path": ["api", "v1", "auth", "token-info"]
 						},
-						"description": "Update user profile information. Only provided fields are updated."
-					},
-					"response": []
-				}
-			],
-			"description": "User profile viewing and editing"
-		},
-		{
-			"name": "Two-Factor Authentication (2FA)",
-			"item": [
-				{
-					"name": "Enable 2FA",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 200) {",
-									"    const response = pm.response.json();",
-									"    if (response.secret) {",
-									"        pm.environment.set('twoFactorSecret', response.secret);",
-									"    }",
-									"    console.log('QR Code URL:', response.qrCodeUrl);",
-									"    console.log('Backup Codes:', response.backupCodes);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"password\": \"Customer123\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/2fa/enable",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "2fa", "enable"]
-						},
-						"description": "Enable 2FA. Returns QR code and backup codes. Scan QR with Google Authenticator."
+						"description": "Get information about the current access token."
 					},
 					"response": []
 				},
 				{
-					"name": "Verify 2FA",
+					"name": "Get User Statistics",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"token\": \"123456\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/2fa/verify",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "2fa", "verify"]
-						},
-						"description": "Verify and complete 2FA setup using code from authenticator app."
-					},
-					"response": []
-				},
-				{
-					"name": "Disable 2FA",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"password\": \"Customer123\",\n  \"twoFactorCode\": \"123456\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/2fa/disable",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "2fa", "disable"]
-						},
-						"description": "Disable 2FA. Requires password and optional 2FA code."
-					},
-					"response": []
-				}
-			],
-			"description": "Two-factor authentication management (TOTP)"
-		},
-		{
-			"name": "Session Management",
-			"item": [
-				{
-					"name": "Get All Sessions",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/sessions",
+							"raw": "{{baseUrl}}/api/v1/users/stats",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "sessions"]
+							"path": ["api", "v1", "users", "stats"]
 						},
-						"description": "Get all active sessions for current user across devices."
-					},
-					"response": []
-				},
-				{
-					"name": "Revoke Specific Session",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/sessions/:sessionId",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "sessions", ":sessionId"],
-							"variable": [
-								{
-									"key": "sessionId",
-									"value": "session-id-here",
-									"description": "Session ID to revoke"
-								}
-							]
-						},
-						"description": "Revoke a specific session (logout from specific device)."
-					},
-					"response": []
-				},
-				{
-					"name": "Revoke All Sessions",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/sessions",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "sessions"]
-						},
-						"description": "Revoke all sessions (logout from all devices)."
+						"description": "Get user statistics (total users, roles, etc.)."
 					},
 					"response": []
 				}
 			],
-			"description": "Multi-device session management"
+			"description": "User profile and statistics endpoints."
 		},
 		{
-			"name": "Payments",
+			"name": "Payment Processing",
 			"item": [
 				{
 					"name": "Initialize Job Payment",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "POST",
 						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
 							{
 								"key": "Content-Type",
 								"value": "application/json"
@@ -768,70 +431,19 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"jobId\": \"job-123\",\n  \"amount\": 5000,\n  \"description\": \"Plumbing service payment\",\n  \"metadata\": {\n    \"jobTitle\": \"Fix leaking pipes\",\n    \"customerName\": \"John Doe\"\n  }\n}"
+							"raw": "{\n  \"amount\": 5000,\n  \"jobId\": \"job-123\",\n  \"description\": \"Plumbing repair service\",\n  \"customerEmail\": \"customer@example.com\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/payments/initialize-job",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "payments", "initialize-job"]
 						},
-						"description": "Initialize payment for a job. Returns Paystack checkout URL."
+						"description": "Initialize payment for a job."
 					},
 					"response": []
 				},
 				{
-					"name": "Verify Payment",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/payments/verify/:reference",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "payments", "verify", ":reference"],
-							"variable": [
-								{
-									"key": "reference",
-									"value": "payment-reference-here",
-									"description": "Paystack payment reference"
-								}
-							]
-						},
-						"description": "Verify payment status using Paystack reference."
-					},
-					"response": []
-				},
-				{
-					"name": "Get Payment History",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/payments/history?limit=10",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "payments", "history"],
-							"query": [
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						},
-						"description": "Get payment history for authenticated user."
-					},
-					"response": []
-				},
-				{
-					"name": "Get Banks",
+					"name": "Get Banks List",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -840,39 +452,41 @@
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "payments", "banks"]
 						},
-						"description": "Get list of supported banks for transfers."
+						"description": "Get list of supported banks for payments."
 					},
 					"response": []
-				},
+				}
+			],
+			"description": "Payment processing endpoints using Paystack."
+		},
+		{
+			"name": "Email Testing",
+			"item": [
 				{
-					"name": "Paystack Webhook",
+					"name": "Test Resend Email",
 					"request": {
 						"method": "POST",
 						"header": [
 							{
 								"key": "Content-Type",
 								"value": "application/json"
-							},
-							{
-								"key": "x-paystack-signature",
-								"value": "test-signature"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"event\": \"charge.success\",\n  \"data\": {\n    \"reference\": \"test_ref_12345\",\n    \"amount\": 500000,\n    \"currency\": \"NGN\",\n    \"status\": \"success\",\n    \"gateway_response\": \"Successful\"\n  }\n}"
+							"raw": "{\n  \"email\": \"test@example.com\",\n  \"subject\": \"Test Email\",\n  \"message\": \"This is a test email from the Handyman Management API.\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/payments/webhook",
+							"raw": "{{baseUrl}}/api/test-resend",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "payments", "webhook"]
+							"path": ["api", "test-resend"]
 						},
-						"description": "Paystack webhook endpoint for payment notifications."
+						"description": "Test email sending functionality using Resend."
 					},
 					"response": []
 				}
 			],
-			"description": "Payment processing with Paystack integration"
+			"description": "Email testing and verification endpoints."
 		}
 	],
 	"event": [
@@ -880,14 +494,12 @@
 			"listen": "prerequest",
 			"script": {
 				"type": "text/javascript",
-				"exec": [""]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [""]
+				"exec": [
+					"// Set default base URL if not set",
+					"if (!pm.environment.get('baseUrl')) {",
+					"    pm.environment.set('baseUrl', 'https://kleva-server.vercel.app');",
+					"}"
+				]
 			}
 		}
 	],
@@ -895,6 +507,46 @@
 		{
 			"key": "baseUrl",
 			"value": "https://kleva-server.vercel.app",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userRole",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userEmail",
+			"value": "test@example.com",
+			"type": "string"
+		},
+		{
+			"key": "userPassword",
+			"value": "Test123!",
+			"type": "string"
+		},
+		{
+			"key": "verificationToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "inngestSignature",
+			"value": "",
 			"type": "string"
 		}
 	]
