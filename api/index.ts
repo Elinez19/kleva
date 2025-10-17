@@ -3,19 +3,32 @@ import { application } from '../src/app';
 import { connectDb } from '../src/database/db';
 
 let isDbConnected = false;
+let dbConnectionAttempted = false;
 
-// Initialize database connection
+// Initialize database connection with better error handling
 const initializeDb = async () => {
-	if (!isDbConnected) {
-		await connectDb();
-		isDbConnected = true;
+	if (!dbConnectionAttempted) {
+		dbConnectionAttempted = true;
+		try {
+			console.log('Attempting MongoDB connection...');
+			await connectDb();
+			isDbConnected = true;
+			console.log('MongoDB connection successful');
+		} catch (error) {
+			console.error('MongoDB connection failed:', error);
+			// Don't throw - allow app to continue without DB
+			isDbConnected = false;
+		}
 	}
+	return isDbConnected;
 };
 
 // Vercel serverless function handler
 export default async (req: Request, res: Response) => {
 	try {
-		// Ensure database is connected
+		console.log(`Handling ${req.method} ${req.url}`);
+		
+		// Try to connect to database (non-blocking)
 		await initializeDb();
 
 		// Set CORS headers
@@ -37,6 +50,10 @@ export default async (req: Request, res: Response) => {
 		return application(req, res);
 	} catch (error) {
 		console.error('Error in Vercel handler:', error);
-		res.status(500).json({ error: 'Internal server error' });
+		res.status(500).json({ 
+			error: 'Internal server error',
+			message: error instanceof Error ? error.message : 'Unknown error',
+			dbConnected: isDbConnected
+		});
 	}
 };
