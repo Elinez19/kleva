@@ -1,14 +1,56 @@
 {
 	"info": {
 		"_postman_id": "handyman-auth-collection-2024",
-		"name": "Handyman Management App - Complete API",
-		"description": "Complete authentication system with MongoDB integration, email verification, session management, and payment processing for the Handyman Management App.",
+		"name": "Handyman Management App - Complete Auth API",
+		"description": "Complete authentication system with MongoDB integration, email verification, session management, 2FA, and admin approval for the Handyman Management App.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "handyman-api-v2"
 	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://kleva-server.vercel.app",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "sessionId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "verificationToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "tempToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "handymanUserId",
+			"value": "",
+			"type": "string"
+		}
+	],
 	"item": [
 		{
-			"name": "Health & Documentation",
+			"name": "🏥 Health & Documentation",
 			"item": [
 				{
 					"name": "Health Check",
@@ -48,98 +90,34 @@
 							"host": ["{{baseUrl}}"],
 							"path": ["api-docs", "openapi.json"]
 						},
-						"description": "Get the OpenAPI 3.0 specification in JSON format."
-					},
-					"response": []
-				},
-				{
-					"name": "Postman Collection",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/handyman-app.postman_collection.json",
-							"host": ["{{baseUrl}}"],
-							"path": ["handyman-app.postman_collection.json"]
-						},
-						"description": "Download the complete Postman collection."
+						"description": "Get the OpenAPI specification in JSON format."
 					},
 					"response": []
 				}
 			],
-			"description": "Health check and documentation endpoints."
+			"description": "Health check and API documentation endpoints."
 		},
 		{
-			"name": "Inngest Integration",
-			"item": [
-				{
-					"name": "Inngest Health Check",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/inngest",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "inngest"]
-						},
-						"description": "Check Inngest integration health and configuration status."
-					},
-					"response": []
-				},
-				{
-					"name": "Inngest Sync (PUT)",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/inngest",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "inngest"]
-						},
-						"description": "Sync Inngest functions and configuration."
-					},
-					"response": []
-				},
-				{
-					"name": "Inngest Webhook",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "X-Inngest-Signature",
-								"value": "{{inngestSignature}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"auth/email.verification.requested\",\n  \"data\": {\n    \"email\": \"test@example.com\",\n    \"token\": \"verification-token-123\",\n    \"userId\": \"user-123\"\n  }\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/inngest",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "inngest"]
-						},
-						"description": "Inngest webhook endpoint for processing events."
-					},
-					"response": []
-				}
-			],
-			"description": "Inngest event processing and webhook endpoints."
-		},
-		{
-			"name": "Authentication",
+			"name": "🔐 Authentication - Registration",
 			"item": [
 				{
 					"name": "Register Customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.userId) {",
+									"        pm.collectionVariables.set('userId', response.userId);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -150,19 +128,35 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Customer123!\",\n  \"role\": \"customer\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1234567890\"\n  }\n}"
+							"raw": "{\n  \"email\": \"customer@handyman.com\",\n  \"password\": \"Customer123!\",\n  \"role\": \"customer\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1234567890\",\n    \"address\": \"123 Main St, City, State\",\n    \"preferredContactMethod\": \"email\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/register",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "register"]
 						},
-						"description": "Register a new customer account."
+						"description": "Register a new customer account. Customer accounts are auto-approved after email verification."
 					},
 					"response": []
 				},
 				{
 					"name": "Register Handyman",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.userId) {",
+									"        pm.collectionVariables.set('handymanUserId', response.userId);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -173,14 +167,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"handyman@example.com\",\n  \"password\": \"Handyman123!\",\n  \"role\": \"handyman\",\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Smith\",\n    \"phone\": \"+1234567891\",\n    \"skills\": [\"plumbing\", \"electrical\"],\n    \"experience\": \"5 years\",\n    \"hourlyRate\": 25\n  }\n}"
+							"raw": "{\n  \"email\": \"handyman@handyman.com\",\n  \"password\": \"Handyman123!\",\n  \"role\": \"handyman\",\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Smith\",\n    \"phone\": \"+1234567891\",\n    \"address\": \"456 Oak Ave, City, State\",\n    \"skills\": [\"plumbing\", \"electrical\", \"carpentry\"],\n    \"experience\": 5,\n    \"hourlyRate\": 25,\n    \"availability\": \"Monday-Friday 8AM-6PM\",\n    \"bio\": \"Experienced handyman with 5 years of service\",\n    \"certifications\": [\"Licensed Plumber\", \"Electrical Safety Certified\"]\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/register",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "register"]
 						},
-						"description": "Register a new handyman account."
+						"description": "Register a new handyman account. Handyman accounts require admin approval after email verification."
 					},
 					"response": []
 				},
@@ -196,17 +190,23 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin123!\",\n  \"role\": \"admin\",\n  \"profile\": {\n    \"firstName\": \"Admin\",\n    \"lastName\": \"User\",\n    \"phone\": \"+1234567892\"\n  }\n}"
+							"raw": "{\n  \"email\": \"admin@handyman.com\",\n  \"password\": \"Admin123!\",\n  \"role\": \"admin\",\n  \"profile\": {\n    \"firstName\": \"Admin\",\n    \"lastName\": \"User\",\n    \"phone\": \"+1234567892\",\n    \"department\": \"Management\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/register",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "register"]
 						},
-						"description": "Register a new admin account."
+						"description": "Register a new admin account. Admin accounts are auto-approved after email verification."
 					},
 					"response": []
-				},
+				}
+			],
+			"description": "User registration endpoints for different roles."
+		},
+		{
+			"name": "📧 Email Verification",
+			"item": [
 				{
 					"name": "Verify Email",
 					"request": {
@@ -217,12 +217,39 @@
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "verify-email", "{{verificationToken}}"]
 						},
-						"description": "Verify email address using verification token."
+						"description": "Verify email address using verification token sent to user's email."
 					},
 					"response": []
-				},
+				}
+			],
+			"description": "Email verification endpoints."
+		},
+		{
+			"name": "🔑 Authentication - Login",
+			"item": [
 				{
-					"name": "Login",
+					"name": "Login Customer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.tokens) {",
+									"        pm.collectionVariables.set('accessToken', response.tokens.accessToken);",
+									"        pm.collectionVariables.set('refreshToken', response.tokens.refreshToken);",
+									"        pm.collectionVariables.set('userId', response.user.id);",
+									"    }",
+									"    if (response.requires2FA) {",
+									"        pm.collectionVariables.set('tempToken', response.tempToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -233,39 +260,146 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+							"raw": "{\n  \"email\": \"customer@handyman.com\",\n  \"password\": \"Customer123!\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/login",
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "login"]
 						},
-						"description": "Login with email and password.",
-						"event": [
-							{
-								"listen": "test",
-								"script": {
-									"exec": [
-										"if (pm.response.code === 200) {",
-										"    const response = pm.response.json();",
-										"    if (response.success && response.data) {",
-										"        pm.environment.set('accessToken', response.data.accessToken);",
-										"        pm.environment.set('refreshToken', response.data.refreshToken);",
-										"        pm.environment.set('userId', response.data.user.id);",
-										"        pm.environment.set('userRole', response.data.user.role);",
-										"        console.log('Tokens saved to environment variables');",
-										"    }",
-										"}"
-									],
-									"type": "text/javascript"
-								}
-							}
-						]
+						"description": "Login with customer credentials."
 					},
 					"response": []
 				},
 				{
-					"name": "Refresh Token",
+					"name": "Login Handyman (Pending Approval)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"handyman@handyman.com\",\n  \"password\": \"Handyman123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Attempt to login with handyman credentials (should fail if pending approval)."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Approved Handyman",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.tokens) {",
+									"        pm.collectionVariables.set('accessToken', response.tokens.accessToken);",
+									"        pm.collectionVariables.set('refreshToken', response.tokens.refreshToken);",
+									"        pm.collectionVariables.set('userId', response.user.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"approved@handyman.com\",\n  \"password\": \"Handyman456!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Login with approved handyman credentials."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.tokens) {",
+									"        pm.collectionVariables.set('accessToken', response.tokens.accessToken);",
+									"        pm.collectionVariables.set('refreshToken', response.tokens.refreshToken);",
+									"        pm.collectionVariables.set('userId', response.user.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@handyman.com\",\n  \"password\": \"Admin123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Login with admin credentials."
+					},
+					"response": []
+				}
+			],
+			"description": "User login endpoints for different roles."
+		},
+		{
+			"name": "🔄 Token Management",
+			"item": [
+				{
+					"name": "Refresh Access Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.accessToken) {",
+									"        pm.collectionVariables.set('accessToken', response.accessToken);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -283,96 +417,7 @@
 							"host": ["{{baseUrl}}"],
 							"path": ["api", "v1", "auth", "refresh"]
 						},
-						"description": "Refresh access token using refresh token.",
-						"event": [
-							{
-								"listen": "test",
-								"script": {
-									"exec": [
-										"if (pm.response.code === 200) {",
-										"    const response = pm.response.json();",
-										"    if (response.success && response.data) {",
-										"        pm.environment.set('accessToken', response.data.accessToken);",
-										"        pm.environment.set('refreshToken', response.data.refreshToken);",
-										"        console.log('Tokens refreshed');",
-										"    }",
-										"}"
-									],
-									"type": "text/javascript"
-								}
-							}
-						]
-					},
-					"response": []
-				},
-				{
-					"name": "Logout",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{accessToken}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/logout",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "logout"]
-						},
-						"description": "Logout and invalidate current session."
-					},
-					"response": []
-				},
-				{
-					"name": "Revoke All Tokens",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{accessToken}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/revoke-all",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "revoke-all"]
-						},
-						"description": "Revoke all tokens for the current user."
-					},
-					"response": []
-				}
-			],
-			"description": "Authentication endpoints for registration, login, and session management."
-		},
-		{
-			"name": "User Management",
-			"item": [
-				{
-					"name": "Get Profile",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{accessToken}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/me",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "me"]
-						},
-						"description": "Get current user profile information."
+						"description": "Refresh expired access token using refresh token."
 					},
 					"response": []
 				},
@@ -394,29 +439,61 @@
 						"description": "Get information about the current access token."
 					},
 					"response": []
-				},
-				{
-					"name": "Get User Statistics",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/users/stats",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "users", "stats"]
-						},
-						"description": "Get user statistics (total users, roles, etc.)."
-					},
-					"response": []
 				}
 			],
-			"description": "User profile and statistics endpoints."
+			"description": "Token management endpoints."
 		},
 		{
-			"name": "Payment Processing",
+			"name": "👤 User Profile Management",
 			"item": [
 				{
-					"name": "Initialize Job Payment",
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "me"]
+						},
+						"description": "Get current user profile information."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"profile\": {\n    \"firstName\": \"John Updated\",\n    \"lastName\": \"Doe Updated\",\n    \"phone\": \"+1234567899\",\n    \"address\": \"123 Updated Main St, City, State\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "me"]
+						},
+						"description": "Update current user profile information."
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -431,36 +508,266 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"amount\": 5000,\n  \"jobId\": \"job-123\",\n  \"description\": \"Plumbing repair service\",\n  \"customerEmail\": \"customer@example.com\"\n}"
+							"raw": "{\n  \"currentPassword\": \"Customer123!\",\n  \"newPassword\": \"NewCustomer123!\",\n  \"confirmPassword\": \"NewCustomer123!\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/payments/initialize-job",
+							"raw": "{{baseUrl}}/api/v1/auth/change-password",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "payments", "initialize-job"]
+							"path": ["api", "v1", "auth", "change-password"]
 						},
-						"description": "Initialize payment for a job."
-					},
-					"response": []
-				},
-				{
-					"name": "Get Banks List",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/payments/banks",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "payments", "banks"]
-						},
-						"description": "Get list of supported banks for payments."
+						"description": "Change user password."
 					},
 					"response": []
 				}
 			],
-			"description": "Payment processing endpoints using Paystack."
+			"description": "User profile management endpoints."
 		},
 		{
-			"name": "Admin Management",
+			"name": "🔐 Two-Factor Authentication",
+			"item": [
+				{
+					"name": "Enable 2FA",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/2fa/enable",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "2fa", "enable"]
+						},
+						"description": "Enable 2FA for the current user. Returns QR code and backup codes."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify 2FA Setup",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/2fa/verify",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "2fa", "verify"]
+						},
+						"description": "Verify 2FA setup with TOTP token from authenticator app."
+					},
+					"response": []
+				},
+				{
+					"name": "Login with 2FA",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"customer@handyman.com\",\n  \"password\": \"Customer123!\",\n  \"twoFactorToken\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Login with 2FA token for users who have 2FA enabled."
+					},
+					"response": []
+				},
+				{
+					"name": "Disable 2FA",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"password\": \"Customer123!\",\n  \"twoFactorToken\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/2fa/disable",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "2fa", "disable"]
+						},
+						"description": "Disable 2FA for the current user."
+					},
+					"response": []
+				}
+			],
+			"description": "Two-factor authentication endpoints."
+		},
+		{
+			"name": "🔑 Session Management",
+			"item": [
+				{
+					"name": "Get Active Sessions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/sessions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "sessions"]
+						},
+						"description": "Get all active sessions for the current user."
+					},
+					"response": []
+				},
+				{
+					"name": "Revoke Specific Session",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/sessions/{{sessionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "sessions", "{{sessionId}}"]
+						},
+						"description": "Revoke a specific session by session ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Revoke All Sessions",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/sessions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "sessions"]
+						},
+						"description": "Revoke all sessions for the current user."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "logout"]
+						},
+						"description": "Logout and revoke current session."
+					},
+					"response": []
+				}
+			],
+			"description": "Session management endpoints."
+		},
+		{
+			"name": "🔒 Password Reset",
+			"item": [
+				{
+					"name": "Request Password Reset",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"customer@handyman.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/forgot-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "forgot-password"]
+						},
+						"description": "Request password reset email."
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"NewPassword123!\",\n  \"confirmPassword\": \"NewPassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/reset-password/{{resetToken}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "reset-password", "{{resetToken}}"]
+						},
+						"description": "Reset password using reset token from email."
+					},
+					"response": []
+				}
+			],
+			"description": "Password reset endpoints."
+		},
+		{
+			"name": "👑 Admin - Handyman Approval",
 			"item": [
 				{
 					"name": "Get Pending Handymen",
@@ -473,11 +780,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/pending-handymen",
+							"raw": "{{baseUrl}}/api/v1/auth/admin/pending-handymen",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "admin", "pending-handymen"]
+							"path": ["api", "v1", "auth", "admin", "pending-handymen"]
 						},
-						"description": "Get list of handymen pending admin approval. Requires admin authentication."
+						"description": "Get all handymen pending approval (Admin only)."
 					},
 					"response": []
 				},
@@ -495,12 +802,16 @@
 								"value": "application/json"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/approve-handyman/{{handymanUserId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "admin", "approve-handyman", "{{handymanUserId}}"]
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
 						},
-						"description": "Approve a handyman account. Requires admin authentication."
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/admin/approve-handyman/{{handymanUserId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "admin", "approve-handyman", "{{handymanUserId}}"]
+						},
+						"description": "Approve a handyman account (Admin only)."
 					},
 					"response": []
 				},
@@ -520,14 +831,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"reason\": \"Insufficient experience or incomplete profile\"\n}"
+							"raw": "{\n  \"reason\": \"Insufficient experience and incomplete profile\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/admin/reject-handyman/{{handymanUserId}}",
+							"raw": "{{baseUrl}}/api/v1/auth/admin/reject-handyman/{{handymanUserId}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "admin", "reject-handyman", "{{handymanUserId}}"]
+							"path": ["api", "v1", "auth", "admin", "reject-handyman", "{{handymanUserId}}"]
 						},
-						"description": "Reject a handyman account with optional reason. Requires admin authentication."
+						"description": "Reject a handyman account with reason (Admin only)."
 					},
 					"response": []
 				}
@@ -535,7 +846,27 @@
 			"description": "Admin endpoints for managing handyman approvals."
 		},
 		{
-			"name": "Email Testing",
+			"name": "📊 User Statistics",
+			"item": [
+				{
+					"name": "Get User Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/users/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "users", "stats"]
+						},
+						"description": "Get user statistics (public endpoint)."
+					},
+					"response": []
+				}
+			],
+			"description": "User statistics and analytics endpoints."
+		},
+		{
+			"name": "🧪 Test Endpoints",
 			"item": [
 				{
 					"name": "Test Resend Email",
@@ -549,19 +880,19 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"test@example.com\",\n  \"subject\": \"Test Email\",\n  \"message\": \"This is a test email from the Handyman Management API.\"\n}"
+							"raw": "{\n  \"email\": \"test@example.com\",\n  \"subject\": \"Test Email\",\n  \"message\": \"This is a test email from the Handyman API.\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/test-resend",
+							"raw": "{{baseUrl}}/api/v1/auth/test-resend",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "test-resend"]
+							"path": ["api", "v1", "auth", "test-resend"]
 						},
-						"description": "Test email sending functionality using Resend."
+						"description": "Test email sending functionality."
 					},
 					"response": []
 				}
 			],
-			"description": "Email testing and verification endpoints."
+			"description": "Test and utility endpoints."
 		}
 	],
 	"event": [
@@ -570,64 +901,40 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					"// Set default base URL if not set",
-					"if (!pm.environment.get('baseUrl')) {",
-					"    pm.environment.set('baseUrl', 'https://kleva-server.vercel.app');",
+					"// Auto-refresh token if expired",
+					"if (pm.collectionVariables.get('refreshToken')) {",
+					"    // Check if access token is expired",
+					"    const accessToken = pm.collectionVariables.get('accessToken');",
+					"    if (accessToken) {",
+					"        try {",
+					"            const payload = JSON.parse(atob(accessToken.split('.')[1]));",
+					"            const now = Math.floor(Date.now() / 1000);",
+					"            if (payload.exp && payload.exp < now + 60) { // Refresh if expires in 1 minute",
+					"                pm.sendRequest({",
+					"                    url: pm.collectionVariables.get('baseUrl') + '/api/v1/auth/refresh',",
+					"                    method: 'POST',",
+					"                    header: {",
+					"                        'Content-Type': 'application/json'",
+					"                    },",
+					"                    body: {",
+					"                        mode: 'raw',",
+					"                        raw: JSON.stringify({",
+					"                            refreshToken: pm.collectionVariables.get('refreshToken')",
+					"                        })",
+					"                    }",
+					"                }, function (err, response) {",
+					"                    if (response && response.json() && response.json().accessToken) {",
+					"                        pm.collectionVariables.set('accessToken', response.json().accessToken);",
+					"                    }",
+					"                });",
+					"            }",
+					"        } catch (e) {",
+					"            // Token is invalid, will need to re-login",
+					"        }",
+					"    }",
 					"}"
 				]
 			}
-		}
-	],
-	"variable": [
-		{
-			"key": "baseUrl",
-			"value": "https://kleva-server.vercel.app",
-			"type": "string"
-		},
-		{
-			"key": "accessToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "refreshToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "userId",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "userRole",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "userEmail",
-			"value": "test@example.com",
-			"type": "string"
-		},
-		{
-			"key": "userPassword",
-			"value": "Test123!",
-			"type": "string"
-		},
-		{
-			"key": "verificationToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "inngestSignature",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "handymanUserId",
-			"value": "",
-			"type": "string"
 		}
 	]
 }

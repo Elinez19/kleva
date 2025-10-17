@@ -28,7 +28,9 @@ const seedData = async () => {
 				department: 'Management'
 			},
 			isEmailVerified: true,
-			approvalStatus: 'approved'
+			approvalStatus: 'approved',
+			isActive: true,
+			loginAttempts: 0
 		});
 
 		console.log('✅ Admin user created:', admin.email);
@@ -47,7 +49,9 @@ const seedData = async () => {
 				preferredContactMethod: 'email'
 			},
 			isEmailVerified: true,
-			approvalStatus: 'approved'
+			approvalStatus: 'approved',
+			isActive: true,
+			loginAttempts: 0
 		});
 
 		console.log('✅ Customer user created:', customer.email);
@@ -71,7 +75,9 @@ const seedData = async () => {
 				certifications: ['Licensed Plumber', 'Electrical Safety Certified']
 			},
 			isEmailVerified: true,
-			approvalStatus: 'pending'
+			approvalStatus: 'pending',
+			isActive: true,
+			loginAttempts: 0
 		});
 
 		console.log('✅ Handyman user created (pending approval):', handyman.email);
@@ -97,7 +103,9 @@ const seedData = async () => {
 			isEmailVerified: true,
 			approvalStatus: 'approved',
 			approvedBy: admin._id,
-			approvedAt: new Date()
+			approvedAt: new Date(),
+			isActive: true,
+			loginAttempts: 0
 		});
 
 		console.log('✅ Approved handyman user created:', handyman2.email);
@@ -123,10 +131,83 @@ const seedData = async () => {
 			approvalStatus: 'rejected',
 			rejectionReason: 'Insufficient experience and incomplete profile',
 			approvedBy: admin._id,
-			approvedAt: new Date()
+			approvedAt: new Date(),
+			isActive: true,
+			loginAttempts: 0
 		});
 
 		console.log('✅ Rejected handyman user created:', handyman3.email);
+
+		// Create additional test users for comprehensive testing
+
+		// Customer with 2FA enabled
+		const customer2FAPassword = await bcrypt.hash('Customer2FA123!', 10);
+		const customer2FA = await UserModel.create({
+			email: 'customer2fa@handyman.com',
+			password: customer2FAPassword,
+			role: 'customer',
+			profile: {
+				firstName: 'Alice',
+				lastName: 'Johnson',
+				phone: '+1234567895',
+				address: '789 Test Ave, City, State',
+				preferredContactMethod: 'phone'
+			},
+			isEmailVerified: true,
+			approvalStatus: 'approved',
+			is2FAEnabled: true,
+			twoFactorSecret: 'JBSWY3DPEHPK3PXP', // Test secret for 2FA
+			twoFactorBackupCodes: ['12345678', '87654321', '11223344', '44332211', '55667788', '88776655', '99001122', '22110099'],
+			isActive: true,
+			loginAttempts: 0
+		});
+
+		console.log('✅ Customer with 2FA created:', customer2FA.email);
+
+		// Locked account (for testing account lockout)
+		const lockedPassword = await bcrypt.hash('Locked123!', 10);
+		const lockedUser = await UserModel.create({
+			email: 'locked@handyman.com',
+			password: lockedPassword,
+			role: 'customer',
+			profile: {
+				firstName: 'Locked',
+				lastName: 'User',
+				phone: '+1234567896',
+				address: '999 Lock St, City, State',
+				preferredContactMethod: 'email'
+			},
+			isEmailVerified: true,
+			approvalStatus: 'approved',
+			isActive: true,
+			loginAttempts: 5,
+			accountLockedUntil: new Date(Date.now() + 15 * 60 * 1000) // Locked for 15 minutes
+		});
+
+		console.log('✅ Locked user created:', lockedUser.email);
+
+		// Unverified email user
+		const unverifiedPassword = await bcrypt.hash('Unverified123!', 10);
+		const unverifiedUser = await UserModel.create({
+			email: 'unverified@handyman.com',
+			password: unverifiedPassword,
+			role: 'customer',
+			profile: {
+				firstName: 'Unverified',
+				lastName: 'User',
+				phone: '+1234567897',
+				address: '888 Unverified St, City, State',
+				preferredContactMethod: 'email'
+			},
+			isEmailVerified: false,
+			emailVerificationToken: 'test-verification-token-12345',
+			emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+			approvalStatus: 'approved',
+			isActive: true,
+			loginAttempts: 0
+		});
+
+		console.log('✅ Unverified user created:', unverifiedUser.email);
 
 		// Display summary
 		const totalUsers = await UserModel.countDocuments();
