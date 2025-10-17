@@ -70,6 +70,27 @@ export type Events = {
 	};
 
 	// Handyman-Specific Events
+	'handyman/approved': {
+		data: {
+			userId: string;
+			email: string;
+			firstName: string;
+			lastName: string;
+			approvedBy: string;
+			approvedAt: Date;
+		};
+	};
+	'handyman/rejected': {
+		data: {
+			userId: string;
+			email: string;
+			firstName: string;
+			lastName: string;
+			rejectedBy: string;
+			rejectionReason: string;
+			rejectedAt: Date;
+		};
+	};
 	'handyman/job.matched': {
 		data: {
 			handymanId: string;
