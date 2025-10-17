@@ -271,6 +271,20 @@
 						"description": "Test email verification with a sample token. This will fail unless you update the seed data with this token."
 					},
 					"response": []
+				},
+				{
+					"name": "Verify Email with Proper Token Format",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/verify-email/{{verificationToken}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "verify-email", "{{verificationToken}}"]
+						},
+						"description": "Verify email with a proper 64-character hex token. The token should be generated when you register a new user and will be sent to your email."
+					},
+					"response": []
 				}
 			],
 			"description": "Email verification endpoints."

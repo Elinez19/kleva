@@ -19,7 +19,7 @@ export const sendVerificationEmailJob = inngest.createFunction(
 		const { email, token, firstName } = event.data;
 
 		try {
-			await sendVerificationEmail(email, token, firstName);
+			await sendVerificationEmail(email, token);
 
 			return {
 				success: true,
@@ -47,7 +47,7 @@ export const sendWelcomeEmailJob = inngest.createFunction(
 		const { email, firstName, role } = event.data;
 
 		try {
-			await sendWelcomeEmail(email, firstName, role);
+			await sendWelcomeEmail(email, firstName);
 
 			return {
 				success: true,
@@ -75,7 +75,7 @@ export const sendPasswordResetJob = inngest.createFunction(
 		const { email, token, firstName } = event.data;
 
 		try {
-			await sendPasswordResetEmail(email, token, firstName);
+			await sendPasswordResetEmail(email, token);
 
 			return {
 				success: true,

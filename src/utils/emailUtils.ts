@@ -270,6 +270,60 @@ export const sendPaymentConfirmationEmail = async (
 	}
 };
 
+export const sendAccountLockedEmail = async (email: string, name: string, reason: string): Promise<void> => {
+	const htmlContent = `
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<style>
+				body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+				.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+				.header { background: #dc3545; color: #fff; padding: 20px; text-align: center; }
+				.content { padding: 20px; background: #f9f9f9; }
+				.warning { background: #f8d7da; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0; }
+				.footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+			</style>
+		</head>
+		<body>
+			<div class="container">
+				<div class="header">
+					<h1>🔒 Account Security Alert</h1>
+				</div>
+				<div class="content">
+					<p>Hello ${name},</p>
+					<div class="warning">
+						<strong>Security Notice:</strong> Your account has been temporarily locked for security reasons.
+					</div>
+					<p><strong>Reason:</strong> ${reason}</p>
+					<p>Your account will be automatically unlocked in 15 minutes. If you believe this is an error or if you continue to experience issues, please contact our support team.</p>
+					<p>To help protect your account:</p>
+					<ul>
+						<li>Use a strong, unique password</li>
+						<li>Enable two-factor authentication</li>
+						<li>Never share your login credentials</li>
+					</ul>
+				</div>
+				<div class="footer">
+					<p>© 2024 Handyman Management. All rights reserved.</p>
+				</div>
+			</div>
+		</body>
+		</html>
+	`;
+
+	try {
+		await resend.emails.send({
+			from: FROM_EMAIL,
+			to: email,
+			subject: 'Account Security Alert - Handyman Management',
+			html: htmlContent
+		});
+	} catch (error) {
+		console.error('Error sending account locked email:', error);
+		// Don't throw error for notification email
+	}
+};
+
 export const sendPaymentFailedEmail = async (
 	email: string,
 	firstName: string,
