@@ -396,3 +396,139 @@ export const revokeAllSessions = async (req: Request, res: Response): Promise<vo
 		});
 	}
 };
+
+// Get token information
+export const getTokenInfo = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const userId = req.user?.userId;
+
+		if (!userId) {
+			res.status(HTTPSTATUS.UNAUTHORIZED).json({
+				success: false,
+				message: 'Unauthorized'
+			});
+			return;
+		}
+
+		// Decode token to show info (without sensitive data)
+		const authHeader = req.headers.authorization;
+		const token = authHeader?.substring(7); // Remove 'Bearer ' prefix
+
+		if (!token) {
+			res.status(HTTPSTATUS.UNAUTHORIZED).json({
+				success: false,
+				message: 'No token provided'
+			});
+			return;
+		}
+
+		const { decodeToken } = await import('../utils/jwtUtils');
+		const decoded = decodeToken(token);
+
+		if (!decoded) {
+			res.status(HTTPSTATUS.UNAUTHORIZED).json({
+				success: false,
+				message: 'Invalid token'
+			});
+			return;
+		}
+
+		res.status(HTTPSTATUS.OK).json({
+			success: true,
+			message: 'Token information',
+			data: {
+				userId: decoded.userId,
+				email: decoded.email,
+				role: decoded.role,
+				sessionId: decoded.sessionId,
+				issuedAt: new Date(decoded.iat * 1000).toISOString(),
+				expiresAt: new Date(decoded.exp * 1000).toISOString(),
+				timeRemaining: Math.max(0, (decoded.exp * 1000) - Date.now())
+			},
+			timestamp: new Date().toISOString()
+		});
+	} catch (error: any) {
+		res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Get user statistics (for testing/admin purposes)
+export const getUserStats = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const totalUsers = await UserModel.countDocuments();
+		const verifiedUsers = await UserModel.countDocuments({ isEmailVerified: true });
+		const unverifiedUsers = await UserModel.countDocuments({ isEmailVerified: false });
+		
+		const usersByRole = await UserModel.aggregate([
+			{
+				$group: {
+					_id: '$role',
+					count: { $sum: 1 }
+				}
+			}
+		]);
+
+		const roleStats = usersByRole.reduce((acc, item) => {
+			acc[item._id] = item.count;
+			return acc;
+		}, {} as Record<string, number>);
+
+		res.status(HTTPSTATUS.OK).json({
+			success: true,
+			message: 'User statistics',
+			data: {
+				totalUsers,
+				verifiedUsers,
+				unverifiedUsers,
+				usersByRole: {
+					customer: roleStats.customer || 0,
+					handyman: roleStats.handyman || 0,
+					admin: roleStats.admin || 0
+				}
+			},
+			timestamp: new Date().toISOString()
+		});
+	} catch (error: any) {
+		res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Test Resend email endpoint
+export const testResend = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const testEmail = req.body.email || 'elijahndenwa19@gmail.com';
+
+		// Create a simple test email function
+		const { Resend } = await import('resend');
+		const { EMAIL } = await import('../config/config');
+		
+		const resend = new Resend(EMAIL.RESEND_API_KEY);
+
+		const result = await resend.emails.send({
+			from: 'Handyman Management <test@anorateck.com>',
+			to: [testEmail],
+			subject: 'Test Email from Handyman Management',
+			html: '<h1>Test Email</h1><p>This is a test email to verify Resend integration.</p>'
+		});
+
+		res.status(HTTPSTATUS.OK).json({
+			success: true,
+			message: 'Test email sent successfully',
+			resendId: (result as any).id || (result as any).data?.id || 'unknown',
+			timestamp: new Date().toISOString()
+		});
+	} catch (error: any) {
+		res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+			success: false,
+			message: 'Failed to send test email',
+			error: error.message,
+			timestamp: new Date().toISOString()
+		});
+	}
+};

@@ -3,10 +3,10 @@ import { EMAIL, FRONTEND_URL } from '../config/config';
 
 const resend = new Resend(EMAIL.RESEND_API_KEY);
 
-const FROM_EMAIL = 'Handyman App <onboarding@resend.dev>'; // Update with your verified domain
+const FROM_EMAIL = 'Handyman Management <noreply@anorateck.com>'; // Using verified custom domain
 
 export const sendVerificationEmail = async (email: string, token: string): Promise<void> => {
-	const verificationUrl = `${FRONTEND_URL}/verify-email?token=${token}`;
+	const verificationUrl = `https://kleva-server.vercel.app/api/v1/auth/verify-email/${token}`;
 
 	const htmlContent = `
 		<!DOCTYPE html>
@@ -15,27 +15,29 @@ export const sendVerificationEmail = async (email: string, token: string): Promi
 			<style>
 				body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
 				.container { max-width: 600px; margin: 0 auto; padding: 20px; }
-				.header { background: #000; color: #fff; padding: 20px; text-align: center; }
+				.header { background: #ff4500; color: white; padding: 20px; text-align: center; }
 				.content { padding: 20px; background: #f9f9f9; }
-				.button { display: inline-block; padding: 12px 30px; background: #000; color: #fff; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-				.footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+				.button { display: inline-block; background: #ff4500; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+				.footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
 			</style>
 		</head>
 		<body>
 			<div class="container">
 				<div class="header">
-					<h1>Verify Your Email</h1>
+					<h1>🔧 Handyman Management</h1>
 				</div>
 				<div class="content">
-					<p>Thank you for registering with Handyman App!</p>
-					<p>Please verify your email address by clicking the button below:</p>
-					<a href="${verificationUrl}" class="button">Verify Email</a>
-					<p>Or copy and paste this link in your browser:</p>
-					<p>${verificationUrl}</p>
+					<h2>Verify Your Email Address</h2>
+					<p>Thank you for registering with Handyman Management! Please verify your email address to complete your registration.</p>
+					<p>Click the button below to verify your email:</p>
+					<a href="${verificationUrl}" class="button">Verify Email Address</a>
+					<p>Or copy and paste this link into your browser:</p>
+					<p><a href="${verificationUrl}">${verificationUrl}</a></p>
 					<p>This link will expire in 24 hours.</p>
+					<p>If you didn't create an account, please ignore this email.</p>
 				</div>
 				<div class="footer">
-					<p>If you didn't create an account, please ignore this email.</p>
+					<p>© 2024 Handyman Management. All rights reserved.</p>
 				</div>
 			</div>
 		</body>
@@ -117,24 +119,33 @@ export const sendWelcomeEmail = async (email: string, name: string): Promise<voi
 			<style>
 				body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
 				.container { max-width: 600px; margin: 0 auto; padding: 20px; }
-				.header { background: #000; color: #fff; padding: 20px; text-align: center; }
+				.header { background: #ff4500; color: white; padding: 20px; text-align: center; }
 				.content { padding: 20px; background: #f9f9f9; }
-				.footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+				.button { display: inline-block; background: #ff4500; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+				.footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
 			</style>
 		</head>
 		<body>
 			<div class="container">
 				<div class="header">
-					<h1>Welcome to Handyman App!</h1>
+					<h1>🔧 Handyman Management</h1>
 				</div>
 				<div class="content">
-					<p>Hi ${name},</p>
-					<p>Welcome to Handyman App! Your account has been successfully verified.</p>
-					<p>You can now access all features of our platform.</p>
+					<h2>Welcome to Handyman Management!</h2>
+					<p>Hello ${name},</p>
+					<p>Welcome to Handyman Management! We're excited to have you join our platform.</p>
+					<p>Here's what you can do next:</p>
+					<ul>
+						<li>Complete your profile setup</li>
+						<li>Explore available services</li>
+						<li>Connect with customers or handymen</li>
+					</ul>
+					<a href="https://kleva-server.vercel.app" class="button">Get Started</a>
 					<p>If you have any questions, feel free to reach out to our support team.</p>
+					<p>Thank you for choosing Handyman Management!</p>
 				</div>
 				<div class="footer">
-					<p>© ${new Date().getFullYear()} Handyman App. All rights reserved.</p>
+					<p>© 2024 Handyman Management. All rights reserved.</p>
 				</div>
 			</div>
 		</body>

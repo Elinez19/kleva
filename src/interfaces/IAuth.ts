@@ -5,6 +5,8 @@ export interface TokenPayload {
 	email: string;
 	role: UserRole;
 	sessionId?: string;
+	iat?: number; // Issued at
+	exp?: number; // Expiration time
 }
 
 export interface AuthTokens {

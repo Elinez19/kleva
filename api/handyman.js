@@ -60,13 +60,10 @@ const tokenUtils = {
 			iat: timestamp,
 			exp: expiry
 		};
-		
+
 		// Create HMAC signature
-		const signature = crypto
-			.createHmac('sha256', TOKEN_CONFIG.SECRET_KEY)
-			.update(JSON.stringify(data))
-			.digest('hex');
-		
+		const signature = crypto.createHmac('sha256', TOKEN_CONFIG.SECRET_KEY).update(JSON.stringify(data)).digest('hex');
+
 		// Combine data and signature
 		const token = Buffer.from(JSON.stringify(data)).toString('base64') + '.' + signature;
 		return token;
@@ -81,18 +78,15 @@ const tokenUtils = {
 			}
 
 			// Verify signature
-			const expectedSignature = crypto
-				.createHmac('sha256', TOKEN_CONFIG.SECRET_KEY)
-				.update(dataPart)
-				.digest('hex');
-			
+			const expectedSignature = crypto.createHmac('sha256', TOKEN_CONFIG.SECRET_KEY).update(dataPart).digest('hex');
+
 			if (signature !== expectedSignature) {
 				throw new Error('Invalid token signature');
 			}
 
 			// Decode data
 			const data = JSON.parse(Buffer.from(dataPart, 'base64').toString());
-			
+
 			// Check expiration
 			if (Date.now() > data.exp) {
 				throw new Error('Token expired');
@@ -106,19 +100,13 @@ const tokenUtils = {
 
 	// Generate access token
 	generateAccessToken: (userId, email, role) => {
-		return tokenUtils.generateSignedToken(
-			{ userId, email, role, type: 'access' },
-			TOKEN_CONFIG.ACCESS_TOKEN_EXPIRY
-		);
+		return tokenUtils.generateSignedToken({ userId, email, role, type: 'access' }, TOKEN_CONFIG.ACCESS_TOKEN_EXPIRY);
 	},
 
 	// Generate refresh token
 	generateRefreshToken: (userId) => {
-		const token = tokenUtils.generateSignedToken(
-			{ userId, type: 'refresh' },
-			TOKEN_CONFIG.REFRESH_TOKEN_EXPIRY
-		);
-		
+		const token = tokenUtils.generateSignedToken({ userId, type: 'refresh' }, TOKEN_CONFIG.REFRESH_TOKEN_EXPIRY);
+
 		// Store refresh token
 		tokenStore.set(token, {
 			userId,
@@ -126,16 +114,13 @@ const tokenUtils = {
 			createdAt: Date.now(),
 			expiresAt: Date.now() + TOKEN_CONFIG.REFRESH_TOKEN_EXPIRY
 		});
-		
+
 		return token;
 	},
 
 	// Generate verification token
 	generateVerificationToken: (userId, email) => {
-		return tokenUtils.generateSignedToken(
-			{ userId, email, type: 'verification' },
-			TOKEN_CONFIG.VERIFICATION_TOKEN_EXPIRY
-		);
+		return tokenUtils.generateSignedToken({ userId, email, type: 'verification' }, TOKEN_CONFIG.VERIFICATION_TOKEN_EXPIRY);
 	},
 
 	// Revoke token
@@ -179,7 +164,7 @@ const authMiddleware = (req, res, next) => {
 		}
 
 		const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-		
+
 		// Check if token is revoked
 		if (tokenUtils.isTokenRevoked(token)) {
 			return res.status(401).json({
@@ -191,7 +176,7 @@ const authMiddleware = (req, res, next) => {
 
 		// Verify token
 		const decoded = tokenUtils.verifyToken(token);
-		
+
 		if (decoded.type !== 'access') {
 			return res.status(401).json({
 				success: false,
@@ -223,7 +208,7 @@ const rateLimitMiddleware = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
 	return (req, res, next) => {
 		const clientId = req.ip || req.connection.remoteAddress;
 		const now = Date.now();
-		
+
 		if (!rateLimitStore.has(clientId)) {
 			rateLimitStore.set(clientId, { count: 1, resetTime: now + windowMs });
 		} else {
@@ -234,7 +219,7 @@ const rateLimitMiddleware = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
 			} else {
 				data.count++;
 			}
-			
+
 			if (data.count > maxRequests) {
 				return res.status(429).json({
 					success: false,
@@ -244,7 +229,7 @@ const rateLimitMiddleware = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
 				});
 			}
 		}
-		
+
 		next();
 	};
 };
@@ -2188,7 +2173,7 @@ app.get('/api/v1/auth/verify-email/:token', async (req, res) => {
 		// Verify the token
 		try {
 			const decoded = tokenUtils.verifyToken(token);
-			
+
 			if (decoded.type !== 'verification') {
 				return res.status(400).json({
 					success: false,
@@ -2223,9 +2208,9 @@ app.get('/api/v1/auth/verify-email/:token', async (req, res) => {
 			userData.isEmailVerified = true;
 			userData.updatedAt = new Date().toISOString();
 			userStore.set(decoded.userId, userData);
-			
+
 			logging.info('Email verification successful for user:', { userId: decoded.userId, email: userData.email });
-			
+
 			res.status(200).json({
 				success: true,
 				message: 'Email verified successfully',
@@ -2235,7 +2220,6 @@ app.get('/api/v1/auth/verify-email/:token', async (req, res) => {
 				note: 'Email verification completed. You can now login.',
 				timestamp: new Date().toISOString()
 			});
-
 		} catch (error) {
 			logging.error('Token verification failed:', error);
 			res.status(400).json({
@@ -2518,7 +2502,7 @@ app.post('/api/v1/auth/refresh', async (req, res) => {
 
 		// Verify refresh token
 		const decoded = tokenUtils.verifyToken(refreshToken);
-		
+
 		if (decoded.type !== 'refresh') {
 			return res.status(401).json({
 				success: false,
@@ -2546,7 +2530,6 @@ app.post('/api/v1/auth/refresh', async (req, res) => {
 			accessToken: newAccessToken,
 			timestamp: new Date().toISOString()
 		});
-
 	} catch (error) {
 		logging.error('Token refresh error:', error);
 		res.status(401).json({
@@ -2563,10 +2546,10 @@ app.post('/api/v1/auth/logout', authMiddleware, async (req, res) => {
 	try {
 		const authHeader = req.headers.authorization;
 		const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-		
+
 		// Revoke the access token
 		tokenUtils.revokeToken(token);
-		
+
 		logging.info('User logged out:', { userId: req.user.userId });
 
 		res.status(200).json({
@@ -2574,7 +2557,6 @@ app.post('/api/v1/auth/logout', authMiddleware, async (req, res) => {
 			message: 'Logged out successfully',
 			timestamp: new Date().toISOString()
 		});
-
 	} catch (error) {
 		logging.error('Logout error:', error);
 		res.status(500).json({
@@ -2589,14 +2571,14 @@ app.post('/api/v1/auth/logout', authMiddleware, async (req, res) => {
 app.post('/api/v1/auth/revoke-all', authMiddleware, async (req, res) => {
 	try {
 		const userId = req.user.userId;
-		
+
 		// Revoke all tokens for this user
 		for (const [token, data] of tokenStore) {
 			if (data.userId === userId) {
 				tokenUtils.revokeToken(token);
 			}
 		}
-		
+
 		logging.info('All tokens revoked for user:', { userId });
 
 		res.status(200).json({
@@ -2604,7 +2586,6 @@ app.post('/api/v1/auth/revoke-all', authMiddleware, async (req, res) => {
 			message: 'All tokens revoked successfully',
 			timestamp: new Date().toISOString()
 		});
-
 	} catch (error) {
 		logging.error('Revoke all tokens error:', error);
 		res.status(500).json({
@@ -2642,7 +2623,6 @@ app.get('/api/v1/auth/me', authMiddleware, (req, res) => {
 			},
 			timestamp: new Date().toISOString()
 		});
-
 	} catch (error) {
 		logging.error('Get user profile error:', error);
 		res.status(500).json({
@@ -2658,10 +2638,10 @@ app.get('/api/v1/auth/token-info', authMiddleware, (req, res) => {
 	try {
 		const authHeader = req.headers.authorization;
 		const token = authHeader.substring(7);
-		
+
 		// Decode token to show info (without sensitive data)
 		const decoded = tokenUtils.verifyToken(token);
-		
+
 		res.status(200).json({
 			success: true,
 			message: 'Token information',
@@ -2676,7 +2656,6 @@ app.get('/api/v1/auth/token-info', authMiddleware, (req, res) => {
 			},
 			timestamp: new Date().toISOString()
 		});
-
 	} catch (error) {
 		logging.error('Token info error:', error);
 		res.status(401).json({
@@ -2697,12 +2676,12 @@ app.get('/api/v1/users/stats', (req, res) => {
 			totalUsers: userStore.size,
 			totalEmails: emailStore.size,
 			totalPhones: phoneStore.size,
-			verifiedUsers: Array.from(userStore.values()).filter(user => user.isEmailVerified).length,
-			unverifiedUsers: Array.from(userStore.values()).filter(user => !user.isEmailVerified).length,
+			verifiedUsers: Array.from(userStore.values()).filter((user) => user.isEmailVerified).length,
+			unverifiedUsers: Array.from(userStore.values()).filter((user) => !user.isEmailVerified).length,
 			usersByRole: {
-				customer: Array.from(userStore.values()).filter(user => user.role === 'customer').length,
-				handyman: Array.from(userStore.values()).filter(user => user.role === 'handyman').length,
-				admin: Array.from(userStore.values()).filter(user => user.role === 'admin').length
+				customer: Array.from(userStore.values()).filter((user) => user.role === 'customer').length,
+				handyman: Array.from(userStore.values()).filter((user) => user.role === 'handyman').length,
+				admin: Array.from(userStore.values()).filter((user) => user.role === 'admin').length
 			}
 		},
 		timestamp: new Date().toISOString()
@@ -2715,18 +2694,18 @@ app.post('/api/test-resend', async (req, res) => {
 		logging.info('Testing Resend API...');
 		logging.info('RESEND_API_KEY available:', !!process.env.RESEND_API_KEY);
 		logging.info('RESEND_API_KEY length:', process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.length : 0);
-		
+
 		const testEmail = req.body.email || 'elijahndenwa19@gmail.com';
-		
+
 		const result = await resend.emails.send({
 			from: 'Handyman Management <test@anorateck.com>',
 			to: [testEmail],
 			subject: 'Test Email from Handyman Management',
 			html: '<h1>Test Email</h1><p>This is a test email to verify Resend integration.</p>'
 		});
-		
+
 		logging.info('Resend test result:', result);
-		
+
 		res.json({
 			success: true,
 			message: 'Test email sent successfully',

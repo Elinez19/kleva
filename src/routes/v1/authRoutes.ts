@@ -55,4 +55,12 @@ router.delete('/sessions/:sessionId', authenticate, authControllers.revokeSessio
 
 router.delete('/sessions', authenticate, authControllers.revokeAllSessions);
 
+// Additional utility endpoints
+router.get('/token-info', authenticate, authControllers.getTokenInfo);
+
+router.get('/users/stats', authControllers.getUserStats);
+
+// Test Resend endpoint
+router.post('/test-resend', authControllers.testResend);
+
 export default router;
