@@ -27,7 +27,7 @@ const initializeDb = async () => {
 export default async (req: Request, res: Response) => {
 	try {
 		console.log(`Handling ${req.method} ${req.url}`);
-		
+
 		// Try to connect to database (non-blocking)
 		await initializeDb();
 
@@ -50,7 +50,7 @@ export default async (req: Request, res: Response) => {
 		return application(req, res);
 	} catch (error) {
 		console.error('Error in Vercel handler:', error);
-		res.status(500).json({ 
+		res.status(500).json({
 			error: 'Internal server error',
 			message: error instanceof Error ? error.message : 'Unknown error',
 			dbConnected: isDbConnected

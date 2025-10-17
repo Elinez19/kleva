@@ -12,74 +12,77 @@ Make sure these are set in your Vercel project settings:
 
 ### **Required Variables** (Must Have)
 
-- [x] **MONGODB_URI**
-  - Example: `mongodb+srv://username:password@cluster.mongodb.net/handyman?retryWrites=true&w=majority`
-  - Get from: MongoDB Atlas → Database → Connect → Connect your application
-  - ⚠️ **CRITICAL**: Without this, your API will fail to start
+-   [x] **MONGODB_URI**
 
-- [x] **JWT_SECRET**
-  - Example: `your-super-secret-jwt-key-change-in-production`
-  - Used for: Access token signing
-  - Generate: `openssl rand -base64 32` or any random string
+    -   Example: `mongodb+srv://username:password@cluster.mongodb.net/handyman?retryWrites=true&w=majority`
+    -   Get from: MongoDB Atlas → Database → Connect → Connect your application
+    -   ⚠️ **CRITICAL**: Without this, your API will fail to start
 
-- [x] **JWT_REFRESH_SECRET**
-  - Example: `your-super-secret-refresh-key-change-in-production`
-  - Used for: Refresh token signing
-  - Generate: `openssl rand -base64 32` or any random string
+-   [x] **JWT_SECRET**
 
-- [x] **RESEND_API_KEY**
-  - Example: `re_...`
-  - Get from: https://resend.com/api-keys
-  - Used for: Sending emails
+    -   Example: `your-super-secret-jwt-key-change-in-production`
+    -   Used for: Access token signing
+    -   Generate: `openssl rand -base64 32` or any random string
+
+-   [x] **JWT_REFRESH_SECRET**
+
+    -   Example: `your-super-secret-refresh-key-change-in-production`
+    -   Used for: Refresh token signing
+    -   Generate: `openssl rand -base64 32` or any random string
+
+-   [x] **RESEND_API_KEY**
+    -   Example: `re_...`
+    -   Get from: https://resend.com/api-keys
+    -   Used for: Sending emails
 
 ### **Optional Variables** (Recommended)
 
-- [ ] **REDIS_URL** (Recommended for production)
-  - Example: `redis://default:password@redis-host:6379`
-  - Used for: Distributed rate limiting and session storage
-  - Get from: Upstash Redis, Redis Cloud, or any Redis provider
-  - Note: Falls back to in-memory if not provided
+-   [ ] **REDIS_URL** (Recommended for production)
 
-- [ ] **FRONTEND_URL**
-  - Example: `https://your-frontend.vercel.app`
-  - Default: `http://localhost:3000`
-  - Used for: CORS and email link generation
+    -   Example: `redis://default:password@redis-host:6379`
+    -   Used for: Distributed rate limiting and session storage
+    -   Get from: Upstash Redis, Redis Cloud, or any Redis provider
+    -   Note: Falls back to in-memory if not provided
 
-- [ ] **JWT_ACCESS_EXPIRY**
-  - Default: `15m`
-  - Options: `5m`, `15m`, `30m`, `1h`
+-   [ ] **FRONTEND_URL**
 
-- [ ] **JWT_REFRESH_EXPIRY**
-  - Default: `7d`
-  - Options: `1d`, `7d`, `30d`
+    -   Example: `https://your-frontend.vercel.app`
+    -   Default: `http://localhost:3000`
+    -   Used for: CORS and email link generation
+
+-   [ ] **JWT_ACCESS_EXPIRY**
+
+    -   Default: `15m`
+    -   Options: `5m`, `15m`, `30m`, `1h`
+
+-   [ ] **JWT_REFRESH_EXPIRY**
+    -   Default: `7d`
+    -   Options: `1d`, `7d`, `30d`
 
 ### **Payment Variables** (If using Paystack)
 
-- [ ] **PAYSTACK_SECRET_KEY**
-  - Get from: https://dashboard.paystack.com/#/settings/developer
-  
-- [ ] **PAYSTACK_PUBLIC_KEY**
-  - Get from: https://dashboard.paystack.com/#/settings/developer
-  
-- [ ] **PAYSTACK_WEBHOOK_SECRET**
-  - Get from: Paystack Dashboard → Settings → Webhooks
+-   [ ] **PAYSTACK_SECRET_KEY**
+    -   Get from: https://dashboard.paystack.com/#/settings/developer
+-   [ ] **PAYSTACK_PUBLIC_KEY**
+    -   Get from: https://dashboard.paystack.com/#/settings/developer
+-   [ ] **PAYSTACK_WEBHOOK_SECRET**
+    -   Get from: Paystack Dashboard → Settings → Webhooks
 
 ### **Inngest Variables** (If using Inngest)
 
-- [ ] **INNGEST_EVENT_KEY**
-  - Get from: Inngest Dashboard
-  
-- [ ] **INNGEST_SIGNING_KEY**
-  - Get from: Inngest Dashboard
-  
-- [ ] **INNGEST_APP_ID**
-  - Default: `handyman-app`
+-   [ ] **INNGEST_EVENT_KEY**
+    -   Get from: Inngest Dashboard
+-   [ ] **INNGEST_SIGNING_KEY**
+    -   Get from: Inngest Dashboard
+-   [ ] **INNGEST_APP_ID**
+    -   Default: `handyman-app`
 
 ---
 
 ## 🚀 Deployment Steps
 
 ### 1. **Check Vercel Dashboard**
+
 ```
 1. Go to https://vercel.com/dashboard
 2. Select your project (kleva-server)
@@ -88,28 +91,32 @@ Make sure these are set in your Vercel project settings:
 ```
 
 ### 2. **Wait for Deployment**
+
 ```
 Current deployment in progress...
 Check: https://vercel.com/[your-username]/kleva-server/deployments
 ```
 
 ### 3. **Test Health Endpoint**
+
 ```powershell
 # After deployment completes (2-3 minutes)
 curl https://kleva-server.vercel.app/health
 ```
 
 **Expected Response:**
+
 ```json
 {
-  "status": "OK",
-  "message": "Handyman Management API is running",
-  "timestamp": "2024-10-17T...",
-  "version": "1.0.0"
+	"status": "OK",
+	"message": "Handyman Management API is running",
+	"timestamp": "2024-10-17T...",
+	"version": "1.0.0"
 }
 ```
 
 ### 4. **Test Database Connection**
+
 ```powershell
 # Register a test user
 $registerBody = @{
@@ -127,34 +134,37 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/register" -M
 ```
 
 **Expected Response:**
+
 ```json
 {
-  "success": true,
-  "message": "Registration successful. Please check your email to verify your account.",
-  "userId": "67..."
+	"success": true,
+	"message": "Registration successful. Please check your email to verify your account.",
+	"userId": "67..."
 }
 ```
 
 ### 5. **Check User Stats**
+
 ```powershell
 # Verify data is being saved to MongoDB
 Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/users/stats" -Method GET | ConvertTo-Json
 ```
 
 **Expected Response:**
+
 ```json
 {
-  "success": true,
-  "data": {
-    "totalUsers": 1,
-    "verifiedUsers": 0,
-    "unverifiedUsers": 1,
-    "usersByRole": {
-      "customer": 1,
-      "handyman": 0,
-      "admin": 0
-    }
-  }
+	"success": true,
+	"data": {
+		"totalUsers": 1,
+		"verifiedUsers": 0,
+		"unverifiedUsers": 1,
+		"usersByRole": {
+			"customer": 1,
+			"handyman": 0,
+			"admin": 0
+		}
+	}
 }
 ```
 
@@ -163,37 +173,45 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/users/stats"
 ## 🐛 Troubleshooting
 
 ### Error: "FUNCTION_INVOCATION_FAILED"
+
 **Cause**: Missing `MONGODB_URI` in Vercel environment variables
 
 **Solution**:
+
 1. Go to Vercel → Your Project → Settings → Environment Variables
 2. Add `MONGODB_URI` with your MongoDB connection string
 3. Redeploy the project
 
 ### Error: "Cannot connect to MongoDB"
+
 **Cause**: Invalid MongoDB connection string or network access
 
 **Solution**:
+
 1. Check MongoDB Atlas → Network Access
 2. Make sure `0.0.0.0/0` (Allow access from anywhere) is added
 3. Verify connection string format:
-   ```
-   mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
-   ```
+    ```
+    mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
+    ```
 
 ### Error: "MongoServerError: bad auth"
+
 **Cause**: Incorrect username or password in MongoDB URI
 
 **Solution**:
+
 1. Go to MongoDB Atlas → Database Access
 2. Verify username and password
 3. Update `MONGODB_URI` in Vercel
 4. Redeploy
 
 ### Error: "Email not sending"
+
 **Cause**: Missing or invalid `RESEND_API_KEY`
 
 **Solution**:
+
 1. Go to https://resend.com/api-keys
 2. Copy your API key
 3. Add to Vercel environment variables
@@ -204,6 +222,7 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/users/stats"
 ## 📊 What Changed?
 
 ### **Before (api/handyman.js)**
+
 ```javascript
 // In-memory storage
 const userStore = new Map();
@@ -213,6 +232,7 @@ const tokenStore = new Map();
 ```
 
 ### **After (api/index.ts)**
+
 ```typescript
 // MongoDB storage
 import UserModel from '../src/models/user.model';
@@ -228,13 +248,13 @@ await connectDb(); // Persistent database ✅
 
 With MongoDB connected, you now have:
 
-- ✅ **Persistent User Data**: Users don't disappear on restart
-- ✅ **Session Management**: Track logins across devices
-- ✅ **2FA Storage**: Backup codes and secrets saved
-- ✅ **Payment History**: Transaction records persist
-- ✅ **Job Management**: Post and track jobs
-- ✅ **Advanced Queries**: Search, filter, and aggregate data
-- ✅ **Scalability**: Multiple Vercel instances share same database
+-   ✅ **Persistent User Data**: Users don't disappear on restart
+-   ✅ **Session Management**: Track logins across devices
+-   ✅ **2FA Storage**: Backup codes and secrets saved
+-   ✅ **Payment History**: Transaction records persist
+-   ✅ **Job Management**: Post and track jobs
+-   ✅ **Advanced Queries**: Search, filter, and aggregate data
+-   ✅ **Scalability**: Multiple Vercel instances share same database
 
 ---
 
@@ -253,6 +273,7 @@ With MongoDB connected, you now have:
 ## 🔗 Quick Commands
 
 ### Add Environment Variable in Vercel
+
 ```bash
 # Via Vercel CLI
 vercel env add MONGODB_URI
@@ -262,6 +283,7 @@ vercel env add MONGODB_URI
 ```
 
 ### Test Complete Flow
+
 ```powershell
 # 1. Register
 $register = @{email="test@test.com"; password="Test123!"; role="customer"; profile=@{firstName="Test"; lastName="User"; phone="+1234567890"}} | ConvertTo-Json
@@ -275,10 +297,10 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/users/stats"
 
 ## 📚 Documentation
 
-- **API Docs**: https://kleva-server.vercel.app/api-docs
-- **Testing Guide**: `TESTING_GUIDE.md`
-- **Refactoring Summary**: `REFACTORING_SUMMARY.md`
-- **MongoDB Atlas**: https://cloud.mongodb.com
+-   **API Docs**: https://kleva-server.vercel.app/api-docs
+-   **Testing Guide**: `TESTING_GUIDE.md`
+-   **Refactoring Summary**: `REFACTORING_SUMMARY.md`
+-   **MongoDB Atlas**: https://cloud.mongodb.com
 
 ---
 
@@ -286,5 +308,4 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/users/stats"
 
 ---
 
-*Last Updated: October 17, 2024*
-
+_Last Updated: October 17, 2024_

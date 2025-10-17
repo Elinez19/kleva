@@ -18,12 +18,13 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/health" -Method GET | Co
 ```
 
 **Expected Response**:
+
 ```json
 {
-  "status": "OK",
-  "message": "Handyman Management API is running",
-  "timestamp": "2024-10-17T...",
-  "version": "1.0.0"
+	"status": "OK",
+	"message": "Handyman Management API is running",
+	"timestamp": "2024-10-17T...",
+	"version": "1.0.0"
 }
 ```
 
@@ -38,6 +39,7 @@ Visit: `https://kleva-server.vercel.app/api-docs`
 ### Register New User
 
 #### Register as Customer
+
 ```powershell
 $registerBody = @{
     email = "customer@example.com"
@@ -55,6 +57,7 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/register" -M
 ```
 
 #### Register as Handyman
+
 ```powershell
 $registerBody = @{
     email = "handyman@example.com"
@@ -74,6 +77,7 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/register" -M
 ```
 
 #### Register as Admin
+
 ```powershell
 $registerBody = @{
     email = "admin@example.com"
@@ -91,11 +95,12 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/register" -M
 ```
 
 **Expected Response**:
+
 ```json
 {
-  "success": true,
-  "message": "Registration successful. Please check your email to verify your account.",
-  "userId": "67..."
+	"success": true,
+	"message": "Registration successful. Please check your email to verify your account.",
+	"userId": "67..."
 }
 ```
 
@@ -114,10 +119,11 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/verify-email
 ```
 
 **Expected Response**:
+
 ```json
 {
-  "success": true,
-  "message": "Email verified successfully"
+	"success": true,
+	"message": "Email verified successfully"
 }
 ```
 
@@ -145,21 +151,22 @@ Write-Host "Refresh Token: $refreshToken"
 ```
 
 **Expected Response**:
+
 ```json
 {
-  "success": true,
-  "message": "Login successful",
-  "user": {
-    "id": "67...",
-    "email": "handyman@example.com",
-    "role": "handyman",
-    "isEmailVerified": true,
-    "is2FAEnabled": false
-  },
-  "tokens": {
-    "accessToken": "eyJ...",
-    "refreshToken": "eyJ..."
-  }
+	"success": true,
+	"message": "Login successful",
+	"user": {
+		"id": "67...",
+		"email": "handyman@example.com",
+		"role": "handyman",
+		"isEmailVerified": true,
+		"is2FAEnabled": false
+	},
+	"tokens": {
+		"accessToken": "eyJ...",
+		"refreshToken": "eyJ..."
+	}
 }
 ```
 
@@ -206,19 +213,20 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/token-info" 
 ```
 
 **Expected Response**:
+
 ```json
 {
-  "success": true,
-  "message": "Token information",
-  "data": {
-    "userId": "67...",
-    "email": "handyman@example.com",
-    "role": "handyman",
-    "sessionId": "...",
-    "issuedAt": "2024-10-17T...",
-    "expiresAt": "2024-10-17T...",
-    "timeRemaining": 899000
-  }
+	"success": true,
+	"message": "Token information",
+	"data": {
+		"userId": "67...",
+		"email": "handyman@example.com",
+		"role": "handyman",
+		"sessionId": "...",
+		"issuedAt": "2024-10-17T...",
+		"expiresAt": "2024-10-17T...",
+		"timeRemaining": 899000
+	}
 }
 ```
 
@@ -436,20 +444,21 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/users/stats"
 ```
 
 **Expected Response**:
+
 ```json
 {
-  "success": true,
-  "message": "User statistics",
-  "data": {
-    "totalUsers": 3,
-    "verifiedUsers": 3,
-    "unverifiedUsers": 0,
-    "usersByRole": {
-      "customer": 1,
-      "handyman": 1,
-      "admin": 1
-    }
-  }
+	"success": true,
+	"message": "User statistics",
+	"data": {
+		"totalUsers": 3,
+		"verifiedUsers": 3,
+		"unverifiedUsers": 0,
+		"usersByRole": {
+			"customer": 1,
+			"handyman": 1,
+			"admin": 1
+		}
+	}
 }
 ```
 
@@ -473,10 +482,10 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/test-resend"
 2. Click **Import**
 3. Select `Handyman-App.postman_collection.json` from your project root
 4. Create an **Environment** with these variables:
-   - `baseUrl`: `https://kleva-server.vercel.app`
-   - `accessToken`: (will be auto-filled after login)
-   - `refreshToken`: (will be auto-filled after login)
-   - `userId`: (will be auto-filled after login)
+    - `baseUrl`: `https://kleva-server.vercel.app`
+    - `accessToken`: (will be auto-filled after login)
+    - `refreshToken`: (will be auto-filled after login)
+    - `userId`: (will be auto-filled after login)
 
 ### Testing Flow in Postman
 
@@ -492,21 +501,27 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/test-resend"
 ## 🐛 Troubleshooting
 
 ### Error: "Email already registered"
+
 **Solution**: Use a different email address or check if you already registered.
 
 ### Error: "Please verify your email before logging in"
+
 **Solution**: Check your email inbox (including spam folder) and click the verification link.
 
 ### Error: "Invalid or expired verification token"
+
 **Solution**: Request a new verification email (re-register or use password reset flow).
 
 ### Error: "Access token has expired"
+
 **Solution**: Use the refresh token endpoint to get a new access token.
 
 ### Error: "Token has been revoked"
+
 **Solution**: Login again to get new tokens.
 
 ### Error: "Rate limit exceeded"
+
 **Solution**: Wait 15 minutes before trying again (rate limits reset automatically).
 
 ---
@@ -514,26 +529,30 @@ Invoke-RestMethod -Uri "https://kleva-server.vercel.app/api/v1/auth/test-resend"
 ## 📊 Expected Test Results
 
 ### ✅ Successful Registration
-- HTTP Status: `201 Created`
-- Response includes `userId`
-- Verification email received
+
+-   HTTP Status: `201 Created`
+-   Response includes `userId`
+-   Verification email received
 
 ### ✅ Successful Login
-- HTTP Status: `200 OK`
-- Response includes `accessToken` and `refreshToken`
-- User object includes profile data
+
+-   HTTP Status: `200 OK`
+-   Response includes `accessToken` and `refreshToken`
+-   User object includes profile data
 
 ### ✅ Protected Endpoint Access
-- HTTP Status: `200 OK`
-- Valid token required in Authorization header
-- Returns user-specific data
+
+-   HTTP Status: `200 OK`
+-   Valid token required in Authorization header
+-   Returns user-specific data
 
 ### ❌ Common Errors
-- `400 Bad Request`: Missing or invalid input
-- `401 Unauthorized`: Missing or invalid token
-- `403 Forbidden`: Email not verified or insufficient permissions
-- `409 Conflict`: Duplicate email/phone
-- `429 Too Many Requests`: Rate limit exceeded
+
+-   `400 Bad Request`: Missing or invalid input
+-   `401 Unauthorized`: Missing or invalid token
+-   `403 Forbidden`: Email not verified or insufficient permissions
+-   `409 Conflict`: Duplicate email/phone
+-   `429 Too Many Requests`: Rate limit exceeded
 
 ---
 
@@ -579,11 +598,10 @@ Write-Host "User ID: $($registerResponse.userId)"
 
 ## 📚 Additional Resources
 
-- **API Documentation**: https://kleva-server.vercel.app/api-docs
-- **OpenAPI Spec**: https://kleva-server.vercel.app/api-docs/openapi.json
-- **GitHub Repository**: Check README for latest updates
+-   **API Documentation**: https://kleva-server.vercel.app/api-docs
+-   **OpenAPI Spec**: https://kleva-server.vercel.app/api-docs/openapi.json
+-   **GitHub Repository**: Check README for latest updates
 
 ---
 
 **🎉 Happy Testing!**
-
