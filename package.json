@@ -7,7 +7,7 @@
 		"dev": "nodemon",
 		"build": "tsc",
 		"test": "jest --config jest.config.ts --detectOpenHandles --coverage --maxWorkers=1",
-		"start": "node ./dist/server.js",
+		"start": "node ./dist/src/server.js",
 		"vercel-build": "npm run build",
 		"seed": "ts-node src/database/seed.ts",
 		"seed:clear": "ts-node src/database/seed.ts --clear",
