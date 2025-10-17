@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { logging } from '../config/logging';
+import logging from '../config/logging';
 
 export function loggingHandler(req: Request, res: Response, next: NextFunction) {
 	logging.log(`Incoming - METHOD: [${req.method}] - URL: [${req.url}] - IP: [${req.socket.remoteAddress || 'unknown'}]`);
