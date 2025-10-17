@@ -3,3 +3,4 @@ dist
 .qodo
 .env*
 .vercel
+.cursor/
