@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/handyman.js",
+      "src": "api/index.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/api/handyman.js"
+      "dest": "/api/index.ts"
     }
   ]
 }
