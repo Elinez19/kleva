@@ -80,12 +80,12 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
 		approvalStatus: {
 			type: String,
 			enum: ['pending', 'approved', 'rejected'],
-			default: function() {
+			default: function () {
 				return this.role === 'handyman' ? 'pending' : 'approved';
 			}
 		},
 		approvedBy: {
-			type: Schema.Types.ObjectId,
+			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
 			default: null
 		},

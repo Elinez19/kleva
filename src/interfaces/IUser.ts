@@ -1,4 +1,5 @@
 import { Document } from 'mongoose';
+import mongoose from 'mongoose';
 
 export type UserRole = 'handyman' | 'customer' | 'admin';
 
@@ -57,7 +58,7 @@ export interface IUser extends Document {
 
 	// Admin approval for handymen
 	approvalStatus: 'pending' | 'approved' | 'rejected';
-	approvedBy?: string;
+	approvedBy?: mongoose.Types.ObjectId;
 	approvedAt?: Date;
 	rejectionReason?: string;
 

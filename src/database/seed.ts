@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import UserModel from '../src/models/user.model';
-import { connectDb } from '../src/database/db';
+import UserModel from '../models/user.model';
+import { connectDb } from '../database/db';
 import bcrypt from 'bcryptjs';
 
 // Seed data
@@ -154,11 +154,11 @@ const seedData = async () => {
 		console.log('\n📊 Seeding Summary:');
 		console.log(`Total Users: ${totalUsers}`);
 		console.log('Users by Role:');
-		usersByRole.forEach(role => {
+		usersByRole.forEach((role: { _id: string; count: number }) => {
 			console.log(`  ${role._id}: ${role.count}`);
 		});
 		console.log('Handyman Approvals:');
-		handymanApprovals.forEach(approval => {
+		handymanApprovals.forEach((approval: { _id: string; count: number }) => {
 			console.log(`  ${approval._id}: ${approval.count}`);
 		});
 
