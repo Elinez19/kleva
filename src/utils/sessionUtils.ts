@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
 import { getRedisClient } from '../config/redis';
 import SessionModel from '../models/session.model';
 import { ISessionData } from '../interfaces/ISession';
@@ -7,8 +6,8 @@ const SESSION_PREFIX = 'session:';
 const USER_SESSIONS_PREFIX = 'user_sessions:';
 const SESSION_EXPIRY = 7 * 24 * 60 * 60; // 7 days in seconds
 
-// Generate a unique session ID
-export const generateSessionId = (): string => {
+export const generateSessionId = async (): Promise<string> => {
+	const { v4: uuidv4 } = await import('uuid');
 	return uuidv4();
 };
 
@@ -29,7 +28,7 @@ export const createSession = async (
 	deviceInfo: string,
 	ipAddress: string
 ): Promise<string> => {
-	const sessionId = generateSessionId();
+	const sessionId = await generateSessionId();
 	const sessionData: ISessionData = {
 		userId,
 		sessionId,
