@@ -70,13 +70,14 @@
 								"customer": {
 									"summary": "Register as customer",
 									"value": {
-										"email": "customer@example.com",
-										"password": "Customer123",
+										"email": "john.doe@example.com",
+										"password": "SecurePass123!",
 										"role": "customer",
 										"profile": {
 											"firstName": "John",
 											"lastName": "Doe",
-											"phone": "+1234567890",
+											"phone": "+2348012345678",
+											"address": "123 Main Street, Victoria Island, Lagos",
 											"preferredContactMethod": "email"
 										}
 									}
@@ -84,16 +85,34 @@
 								"handyman": {
 									"summary": "Register as handyman",
 									"value": {
-										"email": "handyman@example.com",
-										"password": "Handyman123",
+										"email": "mike.smith@example.com",
+										"password": "HandyMan456!",
 										"role": "handyman",
 										"profile": {
 											"firstName": "Mike",
 											"lastName": "Smith",
-											"phone": "+1234567891",
-											"skills": ["plumbing", "electrical"],
-											"hourlyRate": 75,
-											"experience": 10
+											"phone": "+2348098765432",
+											"address": "45 Carpenter Street, Ikeja, Lagos",
+											"skills": ["plumbing", "electrical", "carpentry"],
+											"hourlyRate": 7500,
+											"experience": 10,
+											"availability": "Monday to Saturday, 8AM - 6PM",
+											"bio": "Professional handyman with 10 years of experience in residential and commercial repairs.",
+											"certifications": ["Licensed Electrician", "Certified Plumber"]
+										}
+									}
+								},
+								"admin": {
+									"summary": "Register as admin",
+									"value": {
+										"email": "admin@handyman-app.com",
+										"password": "AdminSecure789!",
+										"role": "admin",
+										"profile": {
+											"firstName": "Sarah",
+											"lastName": "Johnson",
+											"phone": "+2348087654321",
+											"department": "Operations"
 										}
 									}
 								}
@@ -103,11 +122,16 @@
 				},
 				"responses": {
 					"201": {
-						"description": "Registration successful",
+						"description": "Registration successful - Verification email sent",
 						"content": {
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/RegisterResponse"
+								},
+								"example": {
+									"success": true,
+									"message": "User registered successfully. Please check your email to verify your account.",
+									"userId": "507f1f77bcf86cd799439011"
 								}
 							}
 						}
@@ -116,7 +140,18 @@
 						"$ref": "#/components/responses/BadRequest"
 					},
 					"409": {
-						"$ref": "#/components/responses/Conflict"
+						"description": "Conflict - Email already exists",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"example": {
+									"success": false,
+									"message": "Email already registered"
+								}
+							}
+						}
 					},
 					"429": {
 						"$ref": "#/components/responses/TooManyRequests"
@@ -135,7 +170,8 @@
 						"in": "path",
 						"required": true,
 						"schema": { "type": "string" },
-						"description": "Email verification token"
+						"description": "Email verification token",
+						"example": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6"
 					}
 				],
 				"responses": {
@@ -145,12 +181,27 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "Email verified successfully. You can now log in."
 								}
 							}
 						}
 					},
 					"400": {
-						"$ref": "#/components/responses/BadRequest"
+						"description": "Invalid or expired token",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"example": {
+									"success": false,
+									"message": "Invalid or expired verification token"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -166,6 +217,23 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/LoginRequest"
+							},
+							"examples": {
+								"basicLogin": {
+									"summary": "Basic login",
+									"value": {
+										"email": "john.doe@example.com",
+										"password": "SecurePass123!"
+									}
+								},
+								"loginWith2FA": {
+									"summary": "Login with 2FA code",
+									"value": {
+										"email": "john.doe@example.com",
+										"password": "SecurePass123!",
+										"twoFactorCode": "123456"
+									}
+								}
 							}
 						}
 					}
@@ -177,12 +245,71 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/LoginResponse"
+								},
+								"examples": {
+									"successfulLogin": {
+										"summary": "Successful login",
+										"value": {
+											"success": true,
+											"message": "Login successful",
+											"user": {
+												"id": "507f1f77bcf86cd799439011",
+												"email": "john.doe@example.com",
+												"role": "customer",
+												"isEmailVerified": true,
+												"is2FAEnabled": false
+											},
+											"tokens": {
+												"accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+												"refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+											}
+										}
+									},
+									"requires2FA": {
+										"summary": "2FA required",
+										"value": {
+											"success": true,
+											"message": "2FA code required",
+											"requires2FA": true,
+											"tempToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+										}
+									}
 								}
 							}
 						}
 					},
 					"401": {
-						"$ref": "#/components/responses/Unauthorized"
+						"description": "Unauthorized - Invalid credentials",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"examples": {
+									"invalidCredentials": {
+										"summary": "Invalid credentials",
+										"value": {
+											"success": false,
+											"message": "Invalid email or password"
+										}
+									},
+									"emailNotVerified": {
+										"summary": "Email not verified",
+										"value": {
+											"success": false,
+											"message": "Please verify your email before logging in"
+										}
+									},
+									"invalid2FA": {
+										"summary": "Invalid 2FA code",
+										"value": {
+											"success": false,
+											"message": "Invalid 2FA code"
+										}
+									}
+								}
+							}
+						}
 					},
 					"429": {
 						"$ref": "#/components/responses/TooManyRequests"
@@ -208,6 +335,9 @@
 										"description": "Refresh token received from login"
 									}
 								}
+							},
+							"example": {
+								"refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1MDdmMWY3N2JjZjg2Y2Q3OTk0MzkwMTEiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6ImN1c3RvbWVyIiwiaWF0IjoxNjg4MjA0ODAwLCJleHAiOjE2OTA3OTY4MDB9.abc123xyz..."
 							}
 						}
 					}
@@ -223,12 +353,27 @@
 										"success": { "type": "boolean" },
 										"accessToken": { "type": "string" }
 									}
+								},
+								"example": {
+									"success": true,
+									"accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1MDdmMWY3N2JjZjg2Y2Q3OTk0MzkwMTEiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6ImN1c3RvbWVyIiwic2Vzc2lvbklkIjoiYWJjMTIzIiwiaWF0IjoxNjg4MjA1MDAwLCJleHAiOjE2ODgyMDU5MDB9.def456uvw..."
 								}
 							}
 						}
 					},
 					"401": {
-						"$ref": "#/components/responses/Unauthorized"
+						"description": "Invalid or expired refresh token",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"example": {
+									"success": false,
+									"message": "Invalid or expired refresh token"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -250,6 +395,9 @@
 										"description": "Optional refresh token to revoke"
 									}
 								}
+							},
+							"example": {
+								"refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 							}
 						}
 					}
@@ -261,6 +409,10 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "Logged out successfully"
 								}
 							}
 						}
@@ -289,6 +441,9 @@
 										"format": "email"
 									}
 								}
+							},
+							"example": {
+								"email": "john.doe@example.com"
 							}
 						}
 					}
@@ -300,6 +455,10 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "If an account with this email exists, a password reset link has been sent."
 								}
 							}
 						}
@@ -321,7 +480,8 @@
 						"in": "path",
 						"required": true,
 						"schema": { "type": "string" },
-						"description": "Password reset token"
+						"description": "Password reset token",
+						"example": "z9y8x7w6v5u4t3s2r1q0p9o8n7m6l5k4j3i2h1g0f9e8d7c6b5a4"
 					}
 				],
 				"requestBody": {
@@ -339,6 +499,9 @@
 										"description": "Must contain uppercase, lowercase, and number"
 									}
 								}
+							},
+							"example": {
+								"newPassword": "NewSecurePass456!"
 							}
 						}
 					}
@@ -350,12 +513,39 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "Password reset successfully. You can now log in with your new password."
 								}
 							}
 						}
 					},
 					"400": {
-						"$ref": "#/components/responses/BadRequest"
+						"description": "Invalid or expired token",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"examples": {
+									"invalidToken": {
+										"summary": "Invalid token",
+										"value": {
+											"success": false,
+											"message": "Invalid or expired password reset token"
+										}
+									},
+									"weakPassword": {
+										"summary": "Weak password",
+										"value": {
+											"success": false,
+											"message": "Password must be at least 8 characters and contain uppercase, lowercase, and number"
+										}
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -372,6 +562,11 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/ChangePasswordRequest"
+							},
+							"example": {
+								"currentPassword": "SecurePass123!",
+								"newPassword": "NewSecurePass456!",
+								"confirmPassword": "NewSecurePass456!"
 							}
 						}
 					}
@@ -383,12 +578,39 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "Password changed successfully"
 								}
 							}
 						}
 					},
 					"400": {
-						"$ref": "#/components/responses/BadRequest"
+						"description": "Bad request - Validation error or password mismatch",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"examples": {
+									"incorrectPassword": {
+										"summary": "Incorrect current password",
+										"value": {
+											"success": false,
+											"message": "Current password is incorrect"
+										}
+									},
+									"passwordMismatch": {
+										"summary": "Passwords don't match",
+										"value": {
+											"success": false,
+											"message": "New password and confirm password do not match"
+										}
+									}
+								}
+							}
+						}
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
@@ -412,6 +634,60 @@
 									"properties": {
 										"success": { "type": "boolean" },
 										"data": { "$ref": "#/components/schemas/User" }
+									}
+								},
+								"examples": {
+									"customer": {
+										"summary": "Customer profile",
+										"value": {
+											"success": true,
+											"data": {
+												"_id": "507f1f77bcf86cd799439011",
+												"email": "john.doe@example.com",
+												"role": "customer",
+												"profile": {
+													"firstName": "John",
+													"lastName": "Doe",
+													"phone": "+2348012345678",
+													"address": "123 Main Street, Victoria Island, Lagos",
+													"preferredContactMethod": "email"
+												},
+												"isEmailVerified": true,
+												"is2FAEnabled": false,
+												"isActive": true,
+												"createdAt": "2024-01-15T10:30:00.000Z",
+												"updatedAt": "2024-10-15T14:20:00.000Z"
+											}
+										}
+									},
+									"handyman": {
+										"summary": "Handyman profile",
+										"value": {
+											"success": true,
+											"data": {
+												"_id": "507f1f77bcf86cd799439012",
+												"email": "mike.smith@example.com",
+												"role": "handyman",
+												"approvalStatus": "approved",
+												"profile": {
+													"firstName": "Mike",
+													"lastName": "Smith",
+													"phone": "+2348098765432",
+													"address": "45 Carpenter Street, Ikeja, Lagos",
+													"skills": ["plumbing", "electrical", "carpentry"],
+													"hourlyRate": 7500,
+													"experience": 10,
+													"availability": "Monday to Saturday, 8AM - 6PM",
+													"bio": "Professional handyman with 10 years of experience",
+													"certifications": ["Licensed Electrician", "Certified Plumber"]
+												},
+												"isEmailVerified": true,
+												"is2FAEnabled": true,
+												"isActive": true,
+												"createdAt": "2024-02-20T08:15:00.000Z",
+												"updatedAt": "2024-10-18T09:45:00.000Z"
+											}
+										}
 									}
 								}
 							}
@@ -439,6 +715,29 @@
 										"description": "Profile fields to update"
 									}
 								}
+							},
+							"examples": {
+								"updateCustomer": {
+									"summary": "Update customer profile",
+									"value": {
+										"profile": {
+											"phone": "+2348012345679",
+											"address": "456 New Address, Lekki, Lagos",
+											"preferredContactMethod": "phone"
+										}
+									}
+								},
+								"updateHandyman": {
+									"summary": "Update handyman profile",
+									"value": {
+										"profile": {
+											"hourlyRate": 8500,
+											"skills": ["plumbing", "electrical", "carpentry", "painting"],
+											"availability": "Monday to Sunday, 7AM - 7PM",
+											"bio": "Experienced handyman with over 10 years in the field"
+										}
+									}
+								}
 							}
 						}
 					}
@@ -454,6 +753,27 @@
 										"success": { "type": "boolean" },
 										"message": { "type": "string" },
 										"data": { "$ref": "#/components/schemas/User" }
+									}
+								},
+								"example": {
+									"success": true,
+									"message": "Profile updated successfully",
+									"data": {
+										"_id": "507f1f77bcf86cd799439011",
+										"email": "john.doe@example.com",
+										"role": "customer",
+										"profile": {
+											"firstName": "John",
+											"lastName": "Doe",
+											"phone": "+2348012345679",
+											"address": "456 New Address, Lekki, Lagos",
+											"preferredContactMethod": "phone"
+										},
+										"isEmailVerified": true,
+										"is2FAEnabled": false,
+										"isActive": true,
+										"createdAt": "2024-01-15T10:30:00.000Z",
+										"updatedAt": "2024-10-18T10:30:00.000Z"
 									}
 								}
 							}
@@ -487,6 +807,9 @@
 										"description": "User password for verification"
 									}
 								}
+							},
+							"example": {
+								"password": "SecurePass123!"
 							}
 						}
 					}
@@ -498,12 +821,53 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/Enable2FAResponse"
+								},
+								"example": {
+									"success": true,
+									"secret": "JBSWY3DPEHPK3PXP",
+									"qrCodeUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51...",
+									"backupCodes": [
+										"12345678",
+										"23456789",
+										"34567890",
+										"45678901",
+										"56789012",
+										"67890123",
+										"78901234",
+										"89012345",
+										"90123456",
+										"01234567"
+									],
+									"message": "Scan the QR code with your authenticator app and enter the verification code"
 								}
 							}
 						}
 					},
 					"400": {
-						"$ref": "#/components/responses/BadRequest"
+						"description": "Invalid password or 2FA already enabled",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"examples": {
+									"invalidPassword": {
+										"summary": "Invalid password",
+										"value": {
+											"success": false,
+											"message": "Invalid password"
+										}
+									},
+									"alreadyEnabled": {
+										"summary": "2FA already enabled",
+										"value": {
+											"success": false,
+											"message": "2FA is already enabled"
+										}
+									}
+								}
+							}
+						}
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
@@ -532,6 +896,9 @@
 										"description": "6-digit code from authenticator app"
 									}
 								}
+							},
+							"example": {
+								"token": "123456"
 							}
 						}
 					}
@@ -543,12 +910,27 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "Two-factor authentication enabled successfully"
 								}
 							}
 						}
 					},
 					"400": {
-						"$ref": "#/components/responses/BadRequest"
+						"description": "Invalid 2FA code",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"example": {
+									"success": false,
+									"message": "Invalid 2FA code"
+								}
+							}
+						}
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
@@ -581,6 +963,21 @@
 										"description": "Optional 2FA code"
 									}
 								}
+							},
+							"examples": {
+								"withCode": {
+									"summary": "Disable with 2FA code",
+									"value": {
+										"password": "SecurePass123!",
+										"twoFactorCode": "123456"
+									}
+								},
+								"withoutCode": {
+									"summary": "Disable without 2FA code",
+									"value": {
+										"password": "SecurePass123!"
+									}
+								}
 							}
 						}
 					}
@@ -592,12 +989,27 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "Two-factor authentication disabled successfully"
 								}
 							}
 						}
 					},
 					"400": {
-						"$ref": "#/components/responses/BadRequest"
+						"description": "Invalid password or 2FA code",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"example": {
+									"success": false,
+									"message": "Invalid password"
+								}
+							}
+						}
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
@@ -625,6 +1037,25 @@
 											"items": { "$ref": "#/components/schemas/Session" }
 										}
 									}
+								},
+								"example": {
+									"success": true,
+									"data": [
+										{
+											"sessionId": "sess_abc123xyz",
+											"deviceInfo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/118.0.0.0",
+											"ipAddress": "192.168.1.100",
+											"lastActivity": "2024-10-18T10:30:00.000Z",
+											"createdAt": "2024-10-18T08:00:00.000Z"
+										},
+										{
+											"sessionId": "sess_def456uvw",
+											"deviceInfo": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) Safari/605.1.15",
+											"ipAddress": "192.168.1.101",
+											"lastActivity": "2024-10-17T15:20:00.000Z",
+											"createdAt": "2024-10-15T09:30:00.000Z"
+										}
+									]
 								}
 							}
 						}
@@ -646,6 +1077,10 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "All sessions revoked successfully"
 								}
 							}
 						}
@@ -668,7 +1103,8 @@
 						"in": "path",
 						"required": true,
 						"schema": { "type": "string" },
-						"description": "Session ID to revoke"
+						"description": "Session ID to revoke",
+						"example": "sess_def456uvw"
 					}
 				],
 				"responses": {
@@ -678,6 +1114,10 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "Session revoked successfully"
 								}
 							}
 						}
@@ -686,7 +1126,18 @@
 						"$ref": "#/components/responses/Unauthorized"
 					},
 					"403": {
-						"$ref": "#/components/responses/Forbidden"
+						"description": "Forbidden - Not authorized to revoke this session",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"example": {
+									"success": false,
+									"message": "Not authorized to revoke this session"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -703,6 +1154,34 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/InitializePaymentRequest"
+							},
+							"examples": {
+								"plumbingJob": {
+									"summary": "Plumbing service payment",
+									"value": {
+										"jobId": "job_abc123xyz",
+										"amount": 1500000,
+										"description": "Payment for plumbing service - Kitchen sink repair",
+										"metadata": {
+											"jobTitle": "Kitchen Sink Repair",
+											"handymanId": "507f1f77bcf86cd799439012",
+											"estimatedDuration": "2 hours"
+										}
+									}
+								},
+								"electricalJob": {
+									"summary": "Electrical service payment",
+									"value": {
+										"jobId": "job_def456uvw",
+										"amount": 2500000,
+										"description": "Payment for electrical service - House rewiring",
+										"metadata": {
+											"jobTitle": "House Rewiring",
+											"handymanId": "507f1f77bcf86cd799439013",
+											"estimatedDuration": "5 hours"
+										}
+									}
+								}
 							}
 						}
 					}
@@ -714,12 +1193,36 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/PaymentInitResponse"
+								},
+								"example": {
+									"success": true,
+									"message": "Payment initialized successfully",
+									"data": {
+										"id": "pay_xyz789abc",
+										"reference": "PAY_abc123xyz789",
+										"accessCode": "zyx987wvu654",
+										"authorizationUrl": "https://checkout.paystack.com/zyx987wvu654",
+										"amount": 1500000,
+										"currency": "NGN",
+										"status": "pending"
+									}
 								}
 							}
 						}
 					},
 					"400": {
-						"$ref": "#/components/responses/BadRequest"
+						"description": "Invalid payment data",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"example": {
+									"success": false,
+									"message": "Amount must be at least ₦1.00 (100 kobo)"
+								}
+							}
+						}
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
@@ -738,7 +1241,8 @@
 						"in": "path",
 						"required": true,
 						"schema": { "type": "string" },
-						"description": "Paystack payment reference"
+						"description": "Paystack payment reference",
+						"example": "PAY_abc123xyz789"
 					}
 				],
 				"responses": {
@@ -748,12 +1252,63 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/PaymentVerifyResponse"
+								},
+								"examples": {
+									"successful": {
+										"summary": "Successful payment",
+										"value": {
+											"success": true,
+											"message": "Payment verified successfully",
+											"data": {
+												"id": "pay_xyz789abc",
+												"paymentId": "PAY_abc123xyz789",
+												"jobId": "job_abc123xyz",
+												"amount": "₦15,000",
+												"currency": "NGN",
+												"status": "successful",
+												"reference": "PAY_abc123xyz789",
+												"createdAt": "2024-10-18T10:00:00.000Z",
+												"paidAt": "2024-10-18T10:05:30.000Z",
+												"jobTitle": "Kitchen Sink Repair"
+											}
+										}
+									},
+									"failed": {
+										"summary": "Failed payment",
+										"value": {
+											"success": true,
+											"message": "Payment verification completed",
+											"data": {
+												"id": "pay_xyz789abc",
+												"paymentId": "PAY_abc123xyz789",
+												"jobId": "job_abc123xyz",
+												"amount": "₦15,000",
+												"currency": "NGN",
+												"status": "failed",
+												"reference": "PAY_abc123xyz789",
+												"createdAt": "2024-10-18T10:00:00.000Z",
+												"paidAt": null,
+												"jobTitle": "Kitchen Sink Repair"
+											}
+										}
+									}
 								}
 							}
 						}
 					},
 					"400": {
-						"$ref": "#/components/responses/BadRequest"
+						"description": "Invalid reference or payment not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"example": {
+									"success": false,
+									"message": "Payment with this reference not found"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -769,7 +1324,8 @@
 						"name": "limit",
 						"in": "query",
 						"schema": { "type": "integer", "default": 10, "minimum": 1, "maximum": 100 },
-						"description": "Number of records to return"
+						"description": "Number of records to return",
+						"example": 20
 					}
 				],
 				"responses": {
@@ -787,6 +1343,48 @@
 											"items": { "$ref": "#/components/schemas/Payment" }
 										}
 									}
+								},
+								"example": {
+									"success": true,
+									"message": "Payment history retrieved successfully",
+									"data": [
+										{
+											"id": "pay_xyz789abc",
+											"paymentId": "PAY_abc123xyz789",
+											"jobId": "job_abc123xyz",
+											"amount": "₦15,000",
+											"currency": "NGN",
+											"status": "successful",
+											"reference": "PAY_abc123xyz789",
+											"createdAt": "2024-10-18T10:00:00.000Z",
+											"paidAt": "2024-10-18T10:05:30.000Z",
+											"jobTitle": "Kitchen Sink Repair"
+										},
+										{
+											"id": "pay_def456uvw",
+											"paymentId": "PAY_def456uvw123",
+											"jobId": "job_def456uvw",
+											"amount": "₦25,000",
+											"currency": "NGN",
+											"status": "successful",
+											"reference": "PAY_def456uvw123",
+											"createdAt": "2024-10-15T14:30:00.000Z",
+											"paidAt": "2024-10-15T14:35:45.000Z",
+											"jobTitle": "House Rewiring"
+										},
+										{
+											"id": "pay_ghi789rst",
+											"paymentId": "PAY_ghi789rst456",
+											"jobId": "job_ghi789rst",
+											"amount": "₦8,500",
+											"currency": "NGN",
+											"status": "failed",
+											"reference": "PAY_ghi789rst456",
+											"createdAt": "2024-10-12T09:00:00.000Z",
+											"paidAt": null,
+											"jobTitle": "Painting Service"
+										}
+									]
 								}
 							}
 						}
@@ -824,6 +1422,37 @@
 											}
 										}
 									}
+								},
+								"example": {
+									"success": true,
+									"message": "Banks retrieved successfully",
+									"data": [
+										{
+											"id": 1,
+											"name": "Access Bank",
+											"code": "044"
+										},
+										{
+											"id": 2,
+											"name": "Guaranty Trust Bank",
+											"code": "058"
+										},
+										{
+											"id": 3,
+											"name": "United Bank for Africa",
+											"code": "033"
+										},
+										{
+											"id": 4,
+											"name": "Zenith Bank",
+											"code": "057"
+										},
+										{
+											"id": 5,
+											"name": "First Bank of Nigeria",
+											"code": "011"
+										}
+									]
 								}
 							}
 						}
@@ -846,6 +1475,50 @@
 									"event": { "type": "string" },
 									"data": { "type": "object" }
 								}
+							},
+							"examples": {
+								"chargeSuccess": {
+									"summary": "Successful charge event",
+									"value": {
+										"event": "charge.success",
+										"data": {
+											"id": 302961,
+											"domain": "live",
+											"status": "success",
+											"reference": "PAY_abc123xyz789",
+											"amount": 1500000,
+											"message": "Approved",
+											"gateway_response": "Successful",
+											"paid_at": "2024-10-18T10:05:30.000Z",
+											"created_at": "2024-10-18T10:00:00.000Z",
+											"channel": "card",
+											"currency": "NGN",
+											"ip_address": "192.168.1.100",
+											"metadata": {
+												"jobId": "job_abc123xyz",
+												"jobTitle": "Kitchen Sink Repair"
+											}
+										}
+									}
+								},
+								"chargeFailed": {
+									"summary": "Failed charge event",
+									"value": {
+										"event": "charge.failed",
+										"data": {
+											"id": 302962,
+											"domain": "live",
+											"status": "failed",
+											"reference": "PAY_def456uvw123",
+											"amount": 2500000,
+											"message": "Declined",
+											"gateway_response": "Insufficient Funds",
+											"created_at": "2024-10-18T11:00:00.000Z",
+											"channel": "card",
+											"currency": "NGN"
+										}
+									}
+								}
 							}
 						}
 					}
@@ -857,12 +1530,27 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "Webhook processed successfully"
 								}
 							}
 						}
 					},
 					"400": {
-						"$ref": "#/components/responses/BadRequest"
+						"description": "Invalid webhook signature or payload",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"example": {
+									"success": false,
+									"message": "Invalid webhook signature"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -884,6 +1572,11 @@
 										"message": { "type": "string" },
 										"timestamp": { "type": "string", "format": "date-time" }
 									}
+								},
+								"example": {
+									"status": "OK",
+									"message": "Handyman Management API is running",
+									"timestamp": "2024-10-18T10:30:00.000Z"
 								}
 							}
 						}
@@ -1157,6 +1850,22 @@
 					"application/json": {
 						"schema": {
 							"$ref": "#/components/schemas/ErrorResponse"
+						},
+						"examples": {
+							"validationError": {
+								"summary": "Validation error",
+								"value": {
+									"success": false,
+									"message": "Validation failed: email must be a valid email address"
+								}
+							},
+							"missingField": {
+								"summary": "Missing required field",
+								"value": {
+									"success": false,
+									"message": "Missing required field: password"
+								}
+							}
 						}
 					}
 				}
@@ -1167,6 +1876,29 @@
 					"application/json": {
 						"schema": {
 							"$ref": "#/components/schemas/ErrorResponse"
+						},
+						"examples": {
+							"noToken": {
+								"summary": "No token provided",
+								"value": {
+									"success": false,
+									"message": "No token provided"
+								}
+							},
+							"invalidToken": {
+								"summary": "Invalid token",
+								"value": {
+									"success": false,
+									"message": "Invalid or expired token"
+								}
+							},
+							"expiredToken": {
+								"summary": "Expired token",
+								"value": {
+									"success": false,
+									"message": "Token has expired"
+								}
+							}
 						}
 					}
 				}
@@ -1177,6 +1909,10 @@
 					"application/json": {
 						"schema": {
 							"$ref": "#/components/schemas/ErrorResponse"
+						},
+						"example": {
+							"success": false,
+							"message": "You do not have permission to perform this action"
 						}
 					}
 				}
@@ -1187,6 +1923,10 @@
 					"application/json": {
 						"schema": {
 							"$ref": "#/components/schemas/ErrorResponse"
+						},
+						"example": {
+							"success": false,
+							"message": "Resource already exists"
 						}
 					}
 				}
@@ -1197,6 +1937,10 @@
 					"application/json": {
 						"schema": {
 							"$ref": "#/components/schemas/ErrorResponse"
+						},
+						"example": {
+							"success": false,
+							"message": "Too many requests. Please try again later."
 						}
 					}
 				}

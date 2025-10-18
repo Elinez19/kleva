@@ -64,7 +64,31 @@
 						},
 						"description": "Check API health status and get basic information."
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Health Check - Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/health",
+									"host": ["{{baseUrl}}"],
+									"path": ["health"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"status\": \"OK\",\n  \"message\": \"Handyman Management API is running\",\n  \"timestamp\": \"2024-10-18T10:30:00.000Z\"\n}"
+						}
+					]
 				},
 				{
 					"name": "API Documentation",
@@ -128,7 +152,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\",\n  \"role\": \"customer\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1234567890\",\n    \"address\": \"123 Main St, City, State\",\n    \"preferredContactMethod\": \"email\"\n  }\n}"
+							"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"role\": \"customer\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+2348012345678\",\n    \"address\": \"123 Main Street, Victoria Island, Lagos\",\n    \"preferredContactMethod\": \"email\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/register",
@@ -137,7 +161,72 @@
 						},
 						"description": "Register a new customer account. Customer accounts are auto-approved after email verification."
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Register Customer - Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"role\": \"customer\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+2348012345678\",\n    \"address\": \"123 Main Street, Victoria Island, Lagos\",\n    \"preferredContactMethod\": \"email\"\n  }\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/register",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "register"]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"message\": \"User registered successfully. Please check your email to verify your account.\",\n  \"userId\": \"507f1f77bcf86cd799439011\"\n}"
+						},
+						{
+							"name": "Register Customer - Email Exists",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"role\": \"customer\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+2348012345678\"\n  }\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/register",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "register"]
+								}
+							},
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"message\": \"Email already registered\"\n}"
+						}
+					]
 				},
 				{
 					"name": "Register Handyman",
@@ -167,7 +256,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{handymanEmail}}\",\n  \"password\": \"{{handymanPassword}}\",\n  \"role\": \"handyman\",\n  \"profile\": {\n    \"firstName\": \"Jane\",\n    \"lastName\": \"Smith\",\n    \"phone\": \"+1234567891\",\n    \"address\": \"456 Oak Ave, City, State\",\n    \"skills\": [\"plumbing\", \"electrical\", \"carpentry\"],\n    \"experience\": 5,\n    \"hourlyRate\": 25,\n    \"availability\": \"Monday-Friday 8AM-6PM\",\n    \"bio\": \"Experienced handyman with 5 years of service\",\n    \"certifications\": [\"Licensed Plumber\", \"Electrical Safety Certified\"]\n  }\n}"
+							"raw": "{\n  \"email\": \"mike.smith@example.com\",\n  \"password\": \"HandyMan456!\",\n  \"role\": \"handyman\",\n  \"profile\": {\n    \"firstName\": \"Mike\",\n    \"lastName\": \"Smith\",\n    \"phone\": \"+2348098765432\",\n    \"address\": \"45 Carpenter Street, Ikeja, Lagos\",\n    \"skills\": [\"plumbing\", \"electrical\", \"carpentry\"],\n    \"experience\": 10,\n    \"hourlyRate\": 7500,\n    \"availability\": \"Monday to Saturday, 8AM - 6PM\",\n    \"bio\": \"Professional handyman with 10 years of experience in residential and commercial repairs.\",\n    \"certifications\": [\"Licensed Electrician\", \"Certified Plumber\"]\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/register",
@@ -176,7 +265,40 @@
 						},
 						"description": "Register a new handyman account. Handyman accounts require admin approval after email verification."
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Register Handyman - Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"mike.smith@example.com\",\n  \"password\": \"HandyMan456!\",\n  \"role\": \"handyman\",\n  \"profile\": {\n    \"firstName\": \"Mike\",\n    \"lastName\": \"Smith\",\n    \"phone\": \"+2348098765432\",\n    \"address\": \"45 Carpenter Street, Ikeja, Lagos\",\n    \"skills\": [\"plumbing\", \"electrical\", \"carpentry\"],\n    \"experience\": 10,\n    \"hourlyRate\": 7500\n  }\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/register",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "register"]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"message\": \"Handyman registered successfully. Please check your email to verify your account. Admin approval required.\",\n  \"userId\": \"507f1f77bcf86cd799439012\"\n}"
+						}
+					]
 				},
 				{
 					"name": "Register Admin",
@@ -351,7 +473,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{customerEmail}}\",\n  \"password\": \"{{customerPassword}}\"\n}"
+							"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/login",
@@ -360,7 +482,104 @@
 						},
 						"description": "Login with customer credentials."
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Login Customer - Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "login"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"user\": {\n    \"id\": \"507f1f77bcf86cd799439011\",\n    \"email\": \"john.doe@example.com\",\n    \"role\": \"customer\",\n    \"isEmailVerified\": true,\n    \"is2FAEnabled\": false\n  },\n  \"tokens\": {\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1MDdmMWY3N2JjZjg2Y2Q3OTk0MzkwMTEiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6ImN1c3RvbWVyIiwic2Vzc2lvbklkIjoiYWJjMTIzIiwiaWF0IjoxNjg4MjA1MDAwLCJleHAiOjE2ODgyMDU5MDB9...\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1MDdmMWY3N2JjZjg2Y2Q3OTk0MzkwMTEiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwiaWF0IjoxNjg4MjA0ODAwLCJleHAiOjE2OTA3OTY4MDB9...\"\n  }\n}"
+						},
+						{
+							"name": "Login - Invalid Credentials",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"WrongPassword123!\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "login"]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"message\": \"Invalid email or password\"\n}"
+						},
+						{
+							"name": "Login - 2FA Required",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/login",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "login"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"message\": \"2FA code required\",\n  \"requires2FA\": true,\n  \"tempToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+						}
+					]
 				},
 				{
 					"name": "Login Handyman (Pending Approval)",
@@ -554,7 +773,64 @@
 						},
 						"description": "Get current user profile information."
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Get Profile - Customer",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/me",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "me"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"email\": \"john.doe@example.com\",\n    \"role\": \"customer\",\n    \"profile\": {\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"phone\": \"+2348012345678\",\n      \"address\": \"123 Main Street, Victoria Island, Lagos\",\n      \"preferredContactMethod\": \"email\"\n    },\n    \"isEmailVerified\": true,\n    \"is2FAEnabled\": false,\n    \"isActive\": true,\n    \"createdAt\": \"2024-01-15T10:30:00.000Z\",\n    \"updatedAt\": \"2024-10-15T14:20:00.000Z\"\n  }\n}"
+						},
+						{
+							"name": "Get Profile - Handyman",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/me",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "me"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439012\",\n    \"email\": \"mike.smith@example.com\",\n    \"role\": \"handyman\",\n    \"approvalStatus\": \"approved\",\n    \"profile\": {\n      \"firstName\": \"Mike\",\n      \"lastName\": \"Smith\",\n      \"phone\": \"+2348098765432\",\n      \"address\": \"45 Carpenter Street, Ikeja, Lagos\",\n      \"skills\": [\"plumbing\", \"electrical\", \"carpentry\"],\n      \"hourlyRate\": 7500,\n      \"experience\": 10,\n      \"availability\": \"Monday to Saturday, 8AM - 6PM\",\n      \"bio\": \"Professional handyman with 10 years of experience\",\n      \"certifications\": [\"Licensed Electrician\", \"Certified Plumber\"]\n    },\n    \"isEmailVerified\": true,\n    \"is2FAEnabled\": true,\n    \"isActive\": true,\n    \"createdAt\": \"2024-02-20T08:15:00.000Z\",\n    \"updatedAt\": \"2024-10-18T09:45:00.000Z\"\n  }\n}"
+						}
+					]
 				},
 				{
 					"name": "Update Profile",
@@ -572,7 +848,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"profile\": {\n    \"firstName\": \"John Updated\",\n    \"lastName\": \"Doe Updated\",\n    \"phone\": \"+1234567899\",\n    \"address\": \"123 Updated Main St, City, State\"\n  }\n}"
+							"raw": "{\n  \"profile\": {\n    \"phone\": \"+2348012345679\",\n    \"address\": \"456 New Address, Lekki, Lagos\",\n    \"preferredContactMethod\": \"phone\"\n  }\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/me",
@@ -581,7 +857,44 @@
 						},
 						"description": "Update current user profile information."
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Update Profile - Success",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"profile\": {\n    \"phone\": \"+2348012345679\",\n    \"address\": \"456 New Address, Lekki, Lagos\",\n    \"preferredContactMethod\": \"phone\"\n  }\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/me",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "me"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"message\": \"Profile updated successfully\",\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"email\": \"john.doe@example.com\",\n    \"role\": \"customer\",\n    \"profile\": {\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"phone\": \"+2348012345679\",\n      \"address\": \"456 New Address, Lekki, Lagos\",\n      \"preferredContactMethod\": \"phone\"\n    },\n    \"isEmailVerified\": true,\n    \"is2FAEnabled\": false,\n    \"isActive\": true,\n    \"createdAt\": \"2024-01-15T10:30:00.000Z\",\n    \"updatedAt\": \"2024-10-18T10:30:00.000Z\"\n  }\n}"
+						}
+					]
 				},
 				{
 					"name": "Change Password",
@@ -632,7 +945,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{}"
+							"raw": "{\n  \"password\": \"SecurePass123!\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/2fa/enable",
@@ -641,7 +954,44 @@
 						},
 						"description": "Enable 2FA for the current user. Returns QR code and backup codes."
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Enable 2FA - Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"password\": \"SecurePass123!\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/2fa/enable",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "2fa", "enable"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"secret\": \"JBSWY3DPEHPK3PXP\",\n  \"qrCodeUrl\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5fY51...\",\n  \"backupCodes\": [\n    \"12345678\",\n    \"23456789\",\n    \"34567890\",\n    \"45678901\",\n    \"56789012\",\n    \"67890123\",\n    \"78901234\",\n    \"89012345\",\n    \"90123456\",\n    \"01234567\"\n  ],\n  \"message\": \"Scan the QR code with your authenticator app and enter the verification code\"\n}"
+						}
+					]
 				},
 				{
 					"name": "Verify 2FA Setup",
@@ -743,7 +1093,36 @@
 						},
 						"description": "Get all active sessions for the current user."
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Get Active Sessions - Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/sessions",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "sessions"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"sessionId\": \"sess_abc123xyz\",\n      \"deviceInfo\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/118.0.0.0\",\n      \"ipAddress\": \"192.168.1.100\",\n      \"lastActivity\": \"2024-10-18T10:30:00.000Z\",\n      \"createdAt\": \"2024-10-18T08:00:00.000Z\"\n    },\n    {\n      \"sessionId\": \"sess_def456uvw\",\n      \"deviceInfo\": \"Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) Safari/605.1.15\",\n      \"ipAddress\": \"192.168.1.101\",\n      \"lastActivity\": \"2024-10-17T15:20:00.000Z\",\n      \"createdAt\": \"2024-10-15T09:30:00.000Z\"\n    }\n  ]\n}"
+						}
+					]
 				},
 				{
 					"name": "Revoke Specific Session",
@@ -820,7 +1199,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"customer@handyman.com\"\n}"
+							"raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/v1/auth/forgot-password",
@@ -829,7 +1208,40 @@
 						},
 						"description": "Request password reset email."
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Request Password Reset - Success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/forgot-password",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "forgot-password"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"message\": \"If an account with this email exists, a password reset link has been sent.\"\n}"
+						}
+					]
 				},
 				{
 					"name": "Reset Password",
