@@ -3,8 +3,8 @@ import { EMAIL, FRONTEND_URL } from '../config/config';
 
 const resend = new Resend(EMAIL.RESEND_API_KEY);
 
-// Use Resend's default domain if custom domain is not verified
-const FROM_EMAIL = EMAIL.RESEND_API_KEY ? 'Handyman Management <onboarding@resend.dev>' : 'Handyman Management <noreply@anorateck.com>';
+// Use custom domain for all emails
+const FROM_EMAIL = 'Handyman Management <noreply@anorateck.com>';
 
 // Email validation function
 const isValidEmail = (email: string): boolean => {
