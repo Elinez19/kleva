@@ -6,7 +6,22 @@ const resend = new Resend(EMAIL.RESEND_API_KEY);
 // Use Resend's default domain if custom domain is not verified
 const FROM_EMAIL = EMAIL.RESEND_API_KEY ? 'Handyman Management <onboarding@resend.dev>' : 'Handyman Management <noreply@anorateck.com>';
 
+// Email validation function
+const isValidEmail = (email: string): boolean => {
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	const testDomains = ['test.com', 'example.com', 'localhost', 'test'];
+	const domain = email.split('@')[1]?.toLowerCase();
+
+	return emailRegex.test(email) && !testDomains.some((testDomain) => domain?.includes(testDomain));
+};
+
 export const sendVerificationEmail = async (email: string, token: string): Promise<void> => {
+	// Validate email address before sending
+	if (!isValidEmail(email)) {
+		console.error('❌ Invalid email address:', email);
+		throw new Error(`Invalid email address: ${email}. Please use a valid email address.`);
+	}
+
 	const verificationUrl = `https://kleva-server.vercel.app/api/v1/auth/verify-email/${token}`;
 
 	const htmlContent = `
@@ -64,14 +79,28 @@ export const sendVerificationEmail = async (email: string, token: string): Promi
 		});
 
 		console.log('✅ Verification email sent successfully:', result);
+		console.log('📧 Email ID:', result.data?.id);
+		console.log('📧 Delivery status: Sent via Resend');
 	} catch (error) {
 		console.error('❌ Error sending verification email:', error);
-		console.error('📧 Email details:', { to: email, from: FROM_EMAIL, hasApiKey: !!EMAIL.RESEND_API_KEY });
+		console.error('📧 Email details:', {
+			to: email,
+			from: FROM_EMAIL,
+			hasApiKey: !!EMAIL.RESEND_API_KEY,
+			errorMessage: error.message,
+			errorCode: error.code
+		});
 		throw new Error(`Failed to send verification email: ${error.message}`);
 	}
 };
 
 export const sendPasswordResetEmail = async (email: string, token: string): Promise<void> => {
+	// Validate email address before sending
+	if (!isValidEmail(email)) {
+		console.error('❌ Invalid email address:', email);
+		throw new Error(`Invalid email address: ${email}. Please use a valid email address.`);
+	}
+
 	const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
 
 	const htmlContent = `
@@ -126,6 +155,12 @@ export const sendPasswordResetEmail = async (email: string, token: string): Prom
 };
 
 export const sendWelcomeEmail = async (email: string, name: string): Promise<void> => {
+	// Validate email address before sending
+	if (!isValidEmail(email)) {
+		console.error('❌ Invalid email address:', email);
+		throw new Error(`Invalid email address: ${email}. Please use a valid email address.`);
+	}
+
 	const htmlContent = `
 		<!DOCTYPE html>
 		<html>
@@ -451,5 +486,43 @@ export const sendHandymanPayoutEmail = async (
 	} catch (error) {
 		console.error('Failed to send handyman payout email:', error);
 		throw error;
+	}
+};
+
+// Test email function for debugging email delivery issues
+export const sendTestEmail = async (email: string): Promise<{ success: boolean; message: string; testToken?: string; verificationUrl?: string }> => {
+	try {
+		// Validate email address before sending
+		if (!isValidEmail(email)) {
+			console.error('❌ Invalid email address for test:', email);
+			return {
+				success: false,
+				message: `Invalid email address: ${email}. Please use a valid email address (not test.com, example.com, etc.)`
+			};
+		}
+
+		// Generate a test token
+		const crypto = require('crypto');
+		const testToken = crypto.randomBytes(32).toString('hex');
+		const verificationUrl = `https://kleva-server.vercel.app/api/v1/auth/verify-email/${testToken}`;
+
+		console.log('🧪 Testing email delivery to:', email);
+		console.log('🧪 Test token generated:', testToken);
+
+		// Send test verification email
+		await sendVerificationEmail(email, testToken);
+
+		return {
+			success: true,
+			message: 'Test email sent successfully',
+			testToken,
+			verificationUrl
+		};
+	} catch (error) {
+		console.error('❌ Test email failed:', error);
+		return {
+			success: false,
+			message: `Test email failed: ${error.message}`
+		};
 	}
 };

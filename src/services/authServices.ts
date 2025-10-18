@@ -23,7 +23,7 @@ const safeInngestSend = async (eventName: string, data: any): Promise<void> => {
 			return;
 		}
 
-		console.log(`📤 Sending Inngest event: ${eventName}`, { 
+		console.log(`📤 Sending Inngest event: ${eventName}`, {
 			hasEventKey: !!INNGEST.INNGEST_EVENT_KEY,
 			hasSigningKey: !!INNGEST.INNGEST_SIGNING_KEY,
 			dataKeys: Object.keys(data)
@@ -50,6 +50,19 @@ const safeInngestSend = async (eventName: string, data: any): Promise<void> => {
 // Register user
 export const registerUser = async (data: RegisterInput, ipAddress: string): Promise<RegisterResponse> => {
 	try {
+		// Validate email address format and prevent test domains
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		const testDomains = ['test.com', 'example.com', 'localhost', 'test'];
+		const domain = data.email.split('@')[1]?.toLowerCase();
+
+		if (!emailRegex.test(data.email)) {
+			throw new Error('Invalid email address format');
+		}
+
+		if (testDomains.some((testDomain) => domain?.includes(testDomain))) {
+			throw new Error('Please use a valid email address. Test domains like test.com, example.com are not allowed.');
+		}
+
 		// Check if user already exists by email
 		const existingUser = await UserModel.findOne({ email: data.email });
 		if (existingUser) {
