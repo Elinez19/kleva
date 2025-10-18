@@ -273,16 +273,42 @@
 					"response": []
 				},
 				{
-					"name": "Verify Email with Proper Token Format",
+					"name": "Test Email Delivery",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('✅ Test email sent successfully');",
+									"    console.log('📧 Test token:', response.testToken);",
+									"    console.log('🔗 Verification URL:', response.verificationUrl);",
+									"    pm.environment.set('testVerificationToken', response.testToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/auth/verify-email/{{verificationToken}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "auth", "verify-email", "{{verificationToken}}"]
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{testEmail}}\"\n}"
 						},
-						"description": "Verify email with a proper 64-character hex token. The token should be generated when you register a new user and will be sent to your email."
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/test-email",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "test-email"]
+						},
+						"description": "Test email delivery directly via Resend. Use this to debug email delivery issues."
 					},
 					"response": []
 				}

@@ -30,6 +30,47 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 };
 
 // Verify Email
+// Test email endpoint (for debugging)
+export const testEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+		
+		if (!email) {
+			res.status(400).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		// Generate a test token
+		const crypto = require('crypto');
+		const testToken = crypto.randomBytes(32).toString('hex');
+		
+		console.log('🧪 Testing email delivery to:', email);
+		console.log('🧪 Test token:', testToken);
+		
+		// Import email function
+		const { sendVerificationEmail } = await import('../utils/emailUtils');
+		
+		// Send test email
+		await sendVerificationEmail(email, testToken);
+		
+		res.status(200).json({
+			success: true,
+			message: 'Test email sent successfully',
+			testToken,
+			verificationUrl: `https://kleva-server.vercel.app/api/v1/auth/verify-email/${testToken}`
+		});
+	} catch (error: any) {
+		console.error('❌ Test email failed:', error);
+		res.status(500).json({
+			success: false,
+			message: error.message || 'Failed to send test email'
+		});
+	}
+};
+
 export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const { token } = req.params;

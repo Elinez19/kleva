@@ -18,8 +18,12 @@ export const sendVerificationEmailJob = inngest.createFunction(
 	async ({ event }: { event: Events['auth/email.verification.requested'] }) => {
 		const { email, token, firstName } = event.data;
 
+		console.log('📧 Inngest: Processing email verification request', { email, hasToken: !!token, firstName });
+
 		try {
 			await sendVerificationEmail(email, token);
+
+			console.log('✅ Inngest: Verification email sent successfully to', email);
 
 			return {
 				success: true,
@@ -27,7 +31,8 @@ export const sendVerificationEmailJob = inngest.createFunction(
 				message: 'Verification email sent successfully'
 			};
 		} catch (error) {
-			console.error('Failed to send verification email:', error);
+			console.error('❌ Inngest: Failed to send verification email:', error);
+			console.error('Inngest email details:', { email, hasToken: !!token, firstName });
 			throw new Error(`Failed to send verification email to ${email}: ${error.message}`);
 		}
 	}

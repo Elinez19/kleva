@@ -19,16 +19,30 @@ const safeInngestSend = async (eventName: string, data: any): Promise<void> => {
 	try {
 		// Check if Inngest is properly configured
 		if (!INNGEST.INNGEST_EVENT_KEY || !INNGEST.INNGEST_SIGNING_KEY) {
-			console.log(`Inngest not configured, skipping event: ${eventName}`);
+			console.log(`⚠️ Inngest not configured, skipping event: ${eventName}`);
 			return;
 		}
 
-		await inngest.send({
+		console.log(`📤 Sending Inngest event: ${eventName}`, { 
+			hasEventKey: !!INNGEST.INNGEST_EVENT_KEY,
+			hasSigningKey: !!INNGEST.INNGEST_SIGNING_KEY,
+			dataKeys: Object.keys(data)
+		});
+
+		const result = await inngest.send({
 			name: eventName,
 			data
 		});
+
+		console.log(`✅ Inngest event sent successfully: ${eventName}`, result);
 	} catch (error) {
-		console.warn(`Failed to send Inngest event ${eventName}:`, error);
+		console.error(`❌ Failed to send Inngest event ${eventName}:`, error);
+		console.error('Inngest configuration:', {
+			hasEventKey: !!INNGEST.INNGEST_EVENT_KEY,
+			hasSigningKey: !!INNGEST.INNGEST_SIGNING_KEY,
+			eventName,
+			data
+		});
 		// Don't throw error, just log it
 	}
 };
@@ -67,6 +81,7 @@ export const registerUser = async (data: RegisterInput, ipAddress: string): Prom
 		});
 
 		// Send verification email via Inngest (with fallback)
+		console.log('📧 Attempting to send verification email via Inngest...');
 		await safeInngestSend('auth/email.verification.requested', {
 			userId: user._id.toString(),
 			email: user.email,
@@ -74,9 +89,14 @@ export const registerUser = async (data: RegisterInput, ipAddress: string): Prom
 			firstName: user.profile?.firstName || 'User'
 		});
 
-		// Fallback: Send email directly if Inngest is not configured
-		if (!INNGEST.INNGEST_EVENT_KEY || !INNGEST.INNGEST_SIGNING_KEY) {
+		// ALWAYS send fallback email to ensure delivery
+		console.log('📧 Sending fallback verification email via Resend...');
+		try {
 			await sendVerificationEmail(user.email, verificationToken);
+			console.log('✅ Fallback email sent successfully');
+		} catch (error) {
+			console.error('❌ Fallback email failed:', error);
+			// Don't throw error, Inngest might have worked
 		}
 
 		// Start user onboarding flow

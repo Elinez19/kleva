@@ -63,6 +63,9 @@ router.get('/users/stats', authControllers.getUserStats);
 // Test Resend endpoint
 router.post('/test-resend', authControllers.testResend);
 
+// Test email endpoint (for debugging)
+router.post('/test-email', authControllers.testEmail);
+
 // Admin routes for handyman approval management
 router.get('/admin/pending-handymen', authenticate, authControllers.getPendingHandymen);
 
