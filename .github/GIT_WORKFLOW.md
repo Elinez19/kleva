@@ -2,11 +2,11 @@
 
 ## 📋 Branch Structure
 
-- **`main`** - Production-ready code (protected)
-- **`development`** - Integration branch for features (protected)
-- **`feature/*`** - Feature development branches
-- **`bugfix/*`** - Bug fix branches
-- **`hotfix/*`** - Urgent production fixes
+-   **`main`** - Production-ready code (protected)
+-   **`development`** - Integration branch for features (protected)
+-   **`feature/*`** - Feature development branches
+-   **`bugfix/*`** - Bug fix branches
+-   **`hotfix/*`** - Urgent production fixes
 
 ## 🚀 Daily Development Workflow
 
@@ -79,6 +79,7 @@ perf: performance improvements
 ```
 
 ### Examples:
+
 ```bash
 git commit -m "feat: add Paystack webhook integration"
 git commit -m "fix: resolve email verification token expiry issue"
@@ -112,10 +113,10 @@ git push origin feature/your-feature-name
 2. Click "Pull Requests" → "New Pull Request"
 3. Base: `development` ← Compare: `feature/your-feature-name`
 4. Fill in PR template:
-   - **Title**: Clear description of changes
-   - **Description**: What, why, and how
-   - **Screenshots**: If UI changes
-   - **Testing**: How you tested
+    - **Title**: Clear description of changes
+    - **Description**: What, why, and how
+    - **Screenshots**: If UI changes
+    - **Testing**: How you tested
 5. Request review from team lead
 6. Address review comments
 7. Wait for approval and merge
@@ -182,18 +183,21 @@ git push -f origin feature/your-feature-name
 ## 🔐 Protected Branch Rules
 
 ### ⚠️ NEVER PUSH DIRECTLY TO:
-- ❌ `main` branch
-- ❌ `development` branch
+
+-   ❌ `main` branch
+-   ❌ `development` branch
 
 ### ✅ ALWAYS:
-- Create feature branches
-- Make Pull Requests
-- Get code review
-- Let team lead merge
+
+-   Create feature branches
+-   Make Pull Requests
+-   Get code review
+-   Let team lead merge
 
 ## 📊 Branch Naming Conventions
 
 ### Features
+
 ```bash
 feature/add-payment-integration
 feature/implement-2fa
@@ -201,6 +205,7 @@ feature/update-user-dashboard
 ```
 
 ### Bug Fixes
+
 ```bash
 bugfix/fix-login-error
 bugfix/resolve-email-delivery
@@ -208,6 +213,7 @@ bugfix/correct-payment-calculation
 ```
 
 ### Hotfixes
+
 ```bash
 hotfix/critical-security-patch
 hotfix/payment-gateway-down
@@ -258,20 +264,21 @@ git push origin --delete feature/old-feature
 ## 📞 Need Help?
 
 If you're stuck:
+
 1. Check this guide first
 2. Ask team lead
 3. Don't force push to shared branches
 4. When in doubt, create a backup branch first:
-   ```bash
-   git checkout -b backup-branch-name
-   ```
+    ```bash
+    git checkout -b backup-branch-name
+    ```
 
 ---
 
-**Remember**: 
-- Commit often
-- Write clear messages  
-- Test before pushing
-- Keep PRs focused and small
-- Communicate with your team
+**Remember**:
 
+-   Commit often
+-   Write clear messages
+-   Test before pushing
+-   Keep PRs focused and small
+-   Communicate with your team
