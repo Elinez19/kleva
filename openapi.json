@@ -1555,6 +1555,565 @@
 				}
 			}
 		},
+		"/api/v1/payments/initialize-subscription": {
+			"post": {
+				"tags": ["Payments"],
+				"summary": "Initialize subscription payment",
+				"description": "Initialize a subscription payment for a handyman",
+				"security": [{ "BearerAuth": [] }],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": ["amount", "plan"],
+								"properties": {
+									"amount": {
+										"type": "number",
+										"description": "Subscription amount in Naira"
+									},
+									"plan": {
+										"type": "string",
+										"enum": ["monthly", "quarterly", "yearly"],
+										"description": "Subscription plan type"
+									},
+									"metadata": {
+										"type": "object",
+										"description": "Additional metadata"
+									}
+								}
+							},
+							"example": {
+								"amount": 5000,
+								"plan": "monthly",
+								"metadata": {
+									"userId": "507f1f77bcf86cd799439011",
+									"tier": "premium"
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Payment initialized successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": { "type": "boolean" },
+										"message": { "type": "string" },
+										"authorizationUrl": { "type": "string" },
+										"accessCode": { "type": "string" },
+										"reference": { "type": "string" }
+									}
+								},
+								"example": {
+									"success": true,
+									"message": "Subscription payment initialized successfully",
+									"authorizationUrl": "https://checkout.paystack.com/abc123xyz789",
+									"accessCode": "abc123xyz789",
+									"reference": "SUB_20241018103000"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					}
+				}
+			}
+		},
+		"/api/v1/payments/stats": {
+			"get": {
+				"tags": ["Payments"],
+				"summary": "Get payment statistics",
+				"description": "Get payment statistics for the authenticated user",
+				"security": [{ "BearerAuth": [] }],
+				"parameters": [
+					{
+						"name": "startDate",
+						"in": "query",
+						"schema": { "type": "string", "format": "date" },
+						"description": "Start date for stats (YYYY-MM-DD)"
+					},
+					{
+						"name": "endDate",
+						"in": "query",
+						"schema": { "type": "string", "format": "date" },
+						"description": "End date for stats (YYYY-MM-DD)"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Payment statistics retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": { "type": "boolean" },
+										"stats": {
+											"type": "object",
+											"properties": {
+												"totalPayments": { "type": "number" },
+												"totalAmount": { "type": "number" },
+												"successfulPayments": { "type": "number" },
+												"failedPayments": { "type": "number" },
+												"pendingPayments": { "type": "number" }
+											}
+										}
+									}
+								},
+								"example": {
+									"success": true,
+									"stats": {
+										"totalPayments": 45,
+										"totalAmount": 2450000,
+										"successfulPayments": 40,
+										"failedPayments": 3,
+										"pendingPayments": 2,
+										"averageAmount": 54444.44
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					}
+				}
+			}
+		},
+		"/api/v1/payments/transfer-recipient": {
+			"post": {
+				"tags": ["Payments"],
+				"summary": "Create transfer recipient",
+				"description": "Create a transfer recipient for receiving payouts",
+				"security": [{ "BearerAuth": [] }],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": ["accountNumber", "bankCode", "accountName"],
+								"properties": {
+									"accountNumber": {
+										"type": "string",
+										"description": "Bank account number"
+									},
+									"bankCode": {
+										"type": "string",
+										"description": "Bank code from /payments/banks"
+									},
+									"accountName": {
+										"type": "string",
+										"description": "Account holder name"
+									}
+								}
+							},
+							"example": {
+								"accountNumber": "0123456789",
+								"bankCode": "058",
+								"accountName": "Chukwuemeka Okafor"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Transfer recipient created successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": { "type": "boolean" },
+										"message": { "type": "string" },
+										"recipientCode": { "type": "string" }
+									}
+								},
+								"example": {
+									"success": true,
+									"message": "Transfer recipient created successfully",
+									"recipientCode": "RCP_abc123xyz789"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					}
+				}
+			}
+		},
+		"/api/v1/payments/payout-handyman": {
+			"post": {
+				"tags": ["Payments", "Admin"],
+				"summary": "Payout to handyman",
+				"description": "Process payout to a handyman (Admin only)",
+				"security": [{ "BearerAuth": [] }],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": ["handymanId", "amount", "reason"],
+								"properties": {
+									"handymanId": {
+										"type": "string",
+										"description": "Handyman user ID"
+									},
+									"amount": {
+										"type": "number",
+										"description": "Payout amount in Naira"
+									},
+									"reason": {
+										"type": "string",
+										"description": "Reason for payout"
+									},
+									"recipientCode": {
+										"type": "string",
+										"description": "Transfer recipient code (optional if already saved)"
+									}
+								}
+							},
+							"example": {
+								"handymanId": "507f1f77bcf86cd799439012",
+								"amount": 150000,
+								"reason": "Payment for completed job: Kitchen Sink Repair",
+								"recipientCode": "RCP_abc123xyz789"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Payout processed successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": { "type": "boolean" },
+										"message": { "type": "string" },
+										"transferCode": { "type": "string" }
+									}
+								},
+								"example": {
+									"success": true,
+									"message": "Payout processed successfully",
+									"transferCode": "TRF_def456uvw123"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"$ref": "#/components/responses/Forbidden"
+					}
+				}
+			}
+		},
+		"/api/v1/auth/token-info": {
+			"get": {
+				"tags": ["Authentication"],
+				"summary": "Get token information",
+				"description": "Decode and retrieve information from the current access token",
+				"security": [{ "BearerAuth": [] }],
+				"responses": {
+					"200": {
+						"description": "Token information retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": { "type": "boolean" },
+										"tokenInfo": {
+											"type": "object",
+											"properties": {
+												"userId": { "type": "string" },
+												"email": { "type": "string" },
+												"role": { "type": "string" },
+												"iat": { "type": "number" },
+												"exp": { "type": "number" },
+												"expiresIn": { "type": "string" }
+											}
+										}
+									}
+								},
+								"example": {
+									"success": true,
+									"tokenInfo": {
+										"userId": "507f1f77bcf86cd799439011",
+										"email": "adebayo.olamide@email.com",
+										"role": "customer",
+										"iat": 1697632200,
+										"exp": 1697635800,
+										"expiresIn": "59 minutes"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					}
+				}
+			}
+		},
+		"/api/v1/auth/users/stats": {
+			"get": {
+				"tags": ["Authentication", "Admin"],
+				"summary": "Get user statistics",
+				"description": "Get overall user statistics (Admin/Public)",
+				"responses": {
+					"200": {
+						"description": "User statistics retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": { "type": "boolean" },
+										"stats": {
+											"type": "object",
+											"properties": {
+												"totalUsers": { "type": "number" },
+												"customers": { "type": "number" },
+												"handymen": { "type": "number" },
+												"admins": { "type": "number" },
+												"verifiedUsers": { "type": "number" },
+												"activeUsers": { "type": "number" }
+											}
+										}
+									}
+								},
+								"example": {
+									"success": true,
+									"stats": {
+										"totalUsers": 1256,
+										"customers": 980,
+										"handymen": 270,
+										"admins": 6,
+										"verifiedUsers": 1180,
+										"activeUsers": 1100
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/pending-handymen": {
+			"get": {
+				"tags": ["Admin"],
+				"summary": "Get pending handyman approvals",
+				"description": "Get list of handymen awaiting approval (Admin only)",
+				"security": [{ "BearerAuth": [] }],
+				"responses": {
+					"200": {
+						"description": "Pending handymen retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": { "type": "boolean" },
+										"count": { "type": "number" },
+										"handymen": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"id": { "type": "string" },
+													"email": { "type": "string" },
+													"profile": { "type": "object" },
+													"createdAt": { "type": "string", "format": "date-time" },
+													"isApproved": { "type": "boolean" }
+												}
+											}
+										}
+									}
+								},
+								"example": {
+									"success": true,
+									"count": 3,
+									"handymen": [
+										{
+											"id": "507f1f77bcf86cd799439015",
+											"email": "handyman1@email.com",
+											"profile": {
+												"firstName": "Emeka",
+												"lastName": "Nwankwo",
+												"phoneNumber": "+2348123456789",
+												"specialty": "Plumbing"
+											},
+											"createdAt": "2024-10-15T09:30:00.000Z",
+											"isApproved": false
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"$ref": "#/components/responses/Forbidden"
+					}
+				}
+			}
+		},
+		"/api/v1/admin/approve-handyman/{userId}": {
+			"post": {
+				"tags": ["Admin"],
+				"summary": "Approve handyman",
+				"description": "Approve a pending handyman registration (Admin only)",
+				"security": [{ "BearerAuth": [] }],
+				"parameters": [
+					{
+						"name": "userId",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "string" },
+						"description": "Handyman user ID"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Handyman approved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "Handyman approved successfully"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"$ref": "#/components/responses/Forbidden"
+					},
+					"404": {
+						"description": "Handyman not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"example": {
+									"success": false,
+									"message": "Handyman not found"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/admin/reject-handyman/{userId}": {
+			"post": {
+				"tags": ["Admin"],
+				"summary": "Reject handyman",
+				"description": "Reject a pending handyman registration (Admin only)",
+				"security": [{ "BearerAuth": [] }],
+				"parameters": [
+					{
+						"name": "userId",
+						"in": "path",
+						"required": true,
+						"schema": { "type": "string" },
+						"description": "Handyman user ID"
+					}
+				],
+				"requestBody": {
+					"required": false,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"reason": {
+										"type": "string",
+										"description": "Reason for rejection"
+									}
+								}
+							},
+							"example": {
+								"reason": "Incomplete documentation"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Handyman rejected successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessMessage"
+								},
+								"example": {
+									"success": true,
+									"message": "Handyman registration rejected"
+								}
+							}
+						}
+					},
+					"400": {
+						"$ref": "#/components/responses/BadRequest"
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"$ref": "#/components/responses/Forbidden"
+					},
+					"404": {
+						"description": "Handyman not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								},
+								"example": {
+									"success": false,
+									"message": "Handyman not found"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/health": {
 			"get": {
 				"tags": ["Health"],

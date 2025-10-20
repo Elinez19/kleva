@@ -1369,6 +1369,236 @@
 			"description": "User statistics and analytics endpoints."
 		},
 		{
+			"name": "💳 Payments",
+			"item": [
+				{
+					"name": "Initialize Job Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 15000,\n  \"jobId\": \"job_abc123xyz\",\n  \"jobTitle\": \"Kitchen Sink Repair\",\n  \"handymanId\": \"{{handymanUserId}}\",\n  \"customerId\": \"{{userId}}\",\n  \"metadata\": {\n    \"jobType\": \"Plumbing\",\n    \"location\": \"Lekki Phase 1, Lagos\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/initialize-job",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", "initialize-job"]
+						},
+						"description": "Initialize a job payment with Paystack."
+					},
+					"response": []
+				},
+				{
+					"name": "Initialize Subscription Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 5000,\n  \"plan\": \"monthly\",\n  \"metadata\": {\n    \"userId\": \"{{userId}}\",\n    \"tier\": \"premium\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/initialize-subscription",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", "initialize-subscription"]
+						},
+						"description": "Initialize a subscription payment for premium features."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Payment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/verify/:reference",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", "verify", ":reference"],
+							"variable": [
+								{
+									"key": "reference",
+									"value": "PAY_abc123xyz789",
+									"description": "Payment reference from Paystack"
+								}
+							]
+						},
+						"description": "Verify a payment transaction status."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Payment History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/history?limit=10&page=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", "history"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Get payment history for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Payment Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/stats?startDate=2024-01-01&endDate=2024-12-31",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", "stats"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2024-01-01"
+								},
+								{
+									"key": "endDate",
+									"value": "2024-12-31"
+								}
+							]
+						},
+						"description": "Get payment statistics for a date range."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Supported Banks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/banks",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", "banks"]
+						},
+						"description": "Get list of supported Nigerian banks."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Transfer Recipient",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"accountNumber\": \"0123456789\",\n  \"bankCode\": \"058\",\n  \"accountName\": \"Chukwuemeka Okafor\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/transfer-recipient",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", "transfer-recipient"]
+						},
+						"description": "Create a transfer recipient for receiving payouts."
+					},
+					"response": []
+				},
+				{
+					"name": "Payout to Handyman (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"handymanId\": \"{{handymanUserId}}\",\n  \"amount\": 150000,\n  \"reason\": \"Payment for completed job: Kitchen Sink Repair\",\n  \"recipientCode\": \"RCP_abc123xyz789\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/payout-handyman",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", "payout-handyman"]
+						},
+						"description": "Process a payout to a handyman (Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Paystack Webhook",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"event\": \"charge.success\",\n  \"data\": {\n    \"id\": 302961,\n    \"domain\": \"live\",\n    \"status\": \"success\",\n    \"reference\": \"PAY_abc123xyz789\",\n    \"amount\": 1500000,\n    \"message\": \"Approved\",\n    \"gateway_response\": \"Successful\",\n    \"paid_at\": \"2024-10-18T10:05:30.000Z\",\n    \"created_at\": \"2024-10-18T10:00:00.000Z\",\n    \"channel\": \"card\",\n    \"currency\": \"NGN\",\n    \"metadata\": {\n      \"jobId\": \"job_abc123xyz\",\n      \"jobTitle\": \"Kitchen Sink Repair\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/payments/webhook",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "payments", "webhook"]
+						},
+						"description": "Webhook endpoint for Paystack payment notifications (for testing only)."
+					},
+					"response": []
+				}
+			],
+			"description": "Payment processing, verification, and payout endpoints."
+		},
+		{
 			"name": "🧪 Test Endpoints",
 			"item": [
 				{
