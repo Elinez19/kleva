@@ -470,7 +470,7 @@
 			}
 		},
 		"/api/v1/auth/reset-password/{token}": {
-			"post": {
+			"put": {
 				"tags": ["Password Management"],
 				"summary": "Reset password",
 				"description": "Reset password using token from email",

@@ -28,7 +28,7 @@ router.get('/verify-email/:token', authControllers.verifyEmail);
 
 router.post('/forgot-password', passwordResetLimiter, validateBody(passwordResetRequestSchema), authControllers.requestPasswordReset);
 
-router.post('/reset-password/:token', passwordResetLimiter, validateBody(passwordResetConfirmSchema), authControllers.resetPassword);
+router.put('/reset-password/:token', passwordResetLimiter, validateBody(passwordResetConfirmSchema), authControllers.resetPassword);
 
 router.post('/refresh', validateBody(refreshTokenSchema), authControllers.refreshToken);
 
