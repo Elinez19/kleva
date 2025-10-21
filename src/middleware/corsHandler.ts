@@ -8,15 +8,30 @@ export function corsHandler(req: Request, res: Response, next: NextFunction): an
 
 	const origin = req.header('origin');
 
+	// Only set CORS headers for allowed origins
 	if (allowedOrigins.includes(origin || '')) {
 		res.header('Access-Control-Allow-Origin', origin);
+		res.header('Access-Control-Allow-Credentials', 'true');
+	} else {
+		// For non-allowed origins, don't set any CORS headers
+		// This prevents unauthorized cross-origin requests
+		if (req.method === 'OPTIONS') {
+			return res.status(HTTPSTATUS.FORBIDDEN).json({
+				success: false,
+				message: 'CORS policy violation'
+			});
+		}
 	}
 
-	res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-	res.header('Access-Control-Allow-Credentials', 'true');
+	// Only set these headers for allowed origins
+	if (allowedOrigins.includes(origin || '')) {
+		res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+		res.header('Access-Control-Max-Age', '86400'); // Cache preflight for 24 hours
+		res.header('Access-Control-Expose-Headers', 'Authorization'); // Only expose necessary headers
+	}
 
 	if (req.method === 'OPTIONS') {
-		res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
+		res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET, OPTIONS');
 		return res.status(HTTPSTATUS.OK).json({});
 	}
 
