@@ -1,6 +1,6 @@
 import express from 'express';
 import * as authControllers from '../../controllers/authControllers';
-import { authenticate } from '../../middleware/authHandler';
+import { authenticate, requireRole } from '../../middleware/authHandler';
 import { validateBody } from '../../middleware/validationHandler';
 import { authLimiter, passwordResetLimiter, twoFactorLimiter } from '../../middleware/rateLimitHandler';
 import {
@@ -58,7 +58,7 @@ router.delete('/sessions', authenticate, authControllers.revokeAllSessions);
 // Additional utility endpoints
 router.get('/token-info', authenticate, authControllers.getTokenInfo);
 
-router.get('/users/stats', authControllers.getUserStats);
+router.get('/users/stats', authenticate, requireRole('admin'), authControllers.getUserStats);
 
 // Test Resend endpoint
 router.post('/test-resend', authControllers.testResend);
@@ -67,10 +67,10 @@ router.post('/test-resend', authControllers.testResend);
 router.post('/test-email', authControllers.testEmail);
 
 // Admin routes for handyman approval management
-router.get('/admin/pending-handymen', authenticate, authControllers.getPendingHandymen);
+router.get('/admin/pending-handymen', authenticate, requireRole('admin'), authControllers.getPendingHandymen);
 
-router.post('/admin/approve-handyman/:userId', authenticate, authControllers.approveHandyman);
+router.post('/admin/approve-handyman/:userId', authenticate, requireRole('admin'), authControllers.approveHandyman);
 
-router.post('/admin/reject-handyman/:userId', authenticate, authControllers.rejectHandyman);
+router.post('/admin/reject-handyman/:userId', authenticate, requireRole('admin'), authControllers.rejectHandyman);
 
 export default router;

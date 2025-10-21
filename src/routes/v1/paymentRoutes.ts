@@ -1,6 +1,6 @@
 import express from 'express';
 import * as paymentControllers from '../../controllers/paymentControllers';
-import { authenticate } from '../../middleware/authHandler';
+import { authenticate, requireRole } from '../../middleware/authHandler';
 import { validateBody, validateQuery } from '../../middleware/validationHandler';
 import { userLimiter } from '../../middleware/rateLimitHandler';
 import {
@@ -34,6 +34,6 @@ router.get('/stats', userLimiter, validateQuery(paymentStatsQuerySchema), paymen
 router.post('/transfer-recipient', userLimiter, validateBody(transferRecipientSchema), paymentControllers.createTransferRecipient);
 
 // Admin routes
-router.post('/payout-handyman', userLimiter, validateBody(payoutSchema), paymentControllers.payoutHandyman);
+router.post('/payout-handyman', userLimiter, requireRole('admin'), validateBody(payoutSchema), paymentControllers.payoutHandyman);
 
 export default router;

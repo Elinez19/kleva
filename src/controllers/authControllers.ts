@@ -34,7 +34,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 export const testEmail = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const { email } = req.body;
-		
+
 		if (!email) {
 			res.status(400).json({
 				success: false,
@@ -46,16 +46,16 @@ export const testEmail = async (req: Request, res: Response): Promise<void> => {
 		// Generate a test token
 		const crypto = require('crypto');
 		const testToken = crypto.randomBytes(32).toString('hex');
-		
+
 		console.log('🧪 Testing email delivery to:', email);
 		console.log('🧪 Test token:', testToken);
-		
+
 		// Import email function
 		const { sendVerificationEmail } = await import('../utils/emailUtils');
-		
+
 		// Send test email
 		await sendVerificationEmail(email, testToken);
-		
+
 		res.status(200).json({
 			success: true,
 			message: 'Test email sent successfully',
@@ -602,16 +602,6 @@ export const testResend = async (req: Request, res: Response): Promise<void> => 
 // Get pending handymen
 export const getPendingHandymen = async (req: Request, res: Response): Promise<void> => {
 	try {
-		// Check if user is admin
-		if (req.user?.role !== 'admin') {
-			res.status(HTTPSTATUS.FORBIDDEN).json({
-				success: false,
-				message: 'Admin access required',
-				errors: [{ field: 'authorization', message: 'Only admins can access this endpoint' }]
-			});
-			return;
-		}
-
 		const pendingHandymen = await UserModel.find({
 			role: 'handyman',
 			approvalStatus: 'pending'
@@ -639,16 +629,6 @@ export const getPendingHandymen = async (req: Request, res: Response): Promise<v
 // Approve handyman
 export const approveHandyman = async (req: Request, res: Response): Promise<void> => {
 	try {
-		// Check if user is admin
-		if (req.user?.role !== 'admin') {
-			res.status(HTTPSTATUS.FORBIDDEN).json({
-				success: false,
-				message: 'Admin access required',
-				errors: [{ field: 'authorization', message: 'Only admins can approve handymen' }]
-			});
-			return;
-		}
-
 		const { userId } = req.params;
 		const userData = await UserModel.findById(userId);
 
@@ -728,16 +708,6 @@ export const approveHandyman = async (req: Request, res: Response): Promise<void
 // Reject handyman
 export const rejectHandyman = async (req: Request, res: Response): Promise<void> => {
 	try {
-		// Check if user is admin
-		if (req.user?.role !== 'admin') {
-			res.status(HTTPSTATUS.FORBIDDEN).json({
-				success: false,
-				message: 'Admin access required',
-				errors: [{ field: 'authorization', message: 'Only admins can reject handymen' }]
-			});
-			return;
-		}
-
 		const { userId } = req.params;
 		const { reason } = req.body;
 		const userData = await UserModel.findById(userId);

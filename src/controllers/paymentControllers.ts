@@ -259,14 +259,6 @@ export const payoutHandyman = async (req: Request, res: Response) => {
 			});
 		}
 
-		// Check if user is admin
-		if (req.user?.role !== 'admin') {
-			return res.status(403).json({
-				success: false,
-				message: 'Admin access required'
-			});
-		}
-
 		const { jobId, handymanId } = req.body;
 
 		const result = await PaymentService.payoutHandyman(jobId, handymanId);
