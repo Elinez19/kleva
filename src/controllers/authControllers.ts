@@ -29,6 +29,29 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 	}
 };
 
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
 // Verify Email
 // Test email endpoint (for debugging)
 export const testEmail = async (req: Request, res: Response): Promise<void> => {
@@ -71,11 +94,57 @@ export const testEmail = async (req: Request, res: Response): Promise<void> => {
 	}
 };
 
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
 export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const { token } = req.params;
 		const result = await authServices.verifyEmail(token);
 
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
 		res.status(HTTPSTATUS.OK).json(result);
 	} catch (error: any) {
 		res.status(HTTPSTATUS.BAD_REQUEST).json({
@@ -102,6 +171,29 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 	}
 };
 
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
 // Refresh Token
 export const refreshToken = async (req: Request, res: Response): Promise<void> => {
 	try {
@@ -111,6 +203,29 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
 		res.status(HTTPSTATUS.OK).json(result);
 	} catch (error: any) {
 		res.status(HTTPSTATUS.UNAUTHORIZED).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
 			success: false,
 			message: error.message
 		});
@@ -139,12 +254,58 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
 	}
 };
 
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
 // Request Password Reset
 export const requestPasswordReset = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const { email } = req.body;
 		const result = await authServices.requestPasswordReset(email);
 
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
 		res.status(HTTPSTATUS.OK).json(result);
 	} catch (error: any) {
 		res.status(HTTPSTATUS.BAD_REQUEST).json({
@@ -162,6 +323,29 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
 		const result = await authServices.resetPassword(token, newPassword);
 
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
 		res.status(HTTPSTATUS.OK).json(result);
 	} catch (error: any) {
 		res.status(HTTPSTATUS.BAD_REQUEST).json({
@@ -200,6 +384,29 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
 		});
 	} catch (error: any) {
 		res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
 			success: false,
 			message: error.message
 		});
@@ -246,6 +453,29 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 	}
 };
 
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
 // Change Password
 export const changePassword = async (req: Request, res: Response): Promise<void> => {
 	try {
@@ -262,6 +492,29 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
 		const { currentPassword, newPassword } = req.body;
 		const result = await authServices.changePassword(userId, currentPassword, newPassword);
 
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
 		res.status(HTTPSTATUS.OK).json(result);
 	} catch (error: any) {
 		res.status(HTTPSTATUS.BAD_REQUEST).json({
@@ -296,6 +549,29 @@ export const enable2FA = async (req: Request, res: Response): Promise<void> => {
 	}
 };
 
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
 // Verify 2FA
 export const verify2FA = async (req: Request, res: Response): Promise<void> => {
 	try {
@@ -312,6 +588,29 @@ export const verify2FA = async (req: Request, res: Response): Promise<void> => {
 		const { token } = req.body;
 		const result = await authServices.verify2FA(userId, token);
 
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
 		res.status(HTTPSTATUS.OK).json(result);
 	} catch (error: any) {
 		res.status(HTTPSTATUS.BAD_REQUEST).json({
@@ -346,6 +645,29 @@ export const disable2FA = async (req: Request, res: Response): Promise<void> => 
 	}
 };
 
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
 // Get Sessions
 export const getSessions = async (req: Request, res: Response): Promise<void> => {
 	try {
@@ -367,6 +689,29 @@ export const getSessions = async (req: Request, res: Response): Promise<void> =>
 		});
 	} catch (error: any) {
 		res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
 			success: false,
 			message: error.message
 		});
@@ -411,6 +756,29 @@ export const revokeSession = async (req: Request, res: Response): Promise<void> 
 	}
 };
 
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
 // Revoke All Sessions
 export const revokeAllSessions = async (req: Request, res: Response): Promise<void> => {
 	try {
@@ -430,6 +798,29 @@ export const revokeAllSessions = async (req: Request, res: Response): Promise<vo
 			success: true,
 			message: 'All sessions revoked successfully'
 		});
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
 	} catch (error: any) {
 		res.status(HTTPSTATUS.BAD_REQUEST).json({
 			success: false,
@@ -490,6 +881,29 @@ export const getTokenInfo = async (req: Request, res: Response): Promise<void> =
 		});
 	} catch (error: any) {
 		res.status(HTTPSTATUS.INTERNAL_SERVER_ERROR).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
 			success: false,
 			message: error.message
 		});
@@ -563,6 +977,29 @@ export const getUserStats = async (req: Request, res: Response): Promise<void> =
 	}
 };
 
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
 // Test Resend email endpoint
 export const testResend = async (req: Request, res: Response): Promise<void> => {
 	try {
@@ -597,6 +1034,29 @@ export const testResend = async (req: Request, res: Response): Promise<void> => 
 	}
 };
 
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
 // Admin endpoints for handyman approval management
 
 // Get pending handymen
@@ -622,6 +1082,29 @@ export const getPendingHandymen = async (req: Request, res: Response): Promise<v
 			message: 'Internal server error',
 			error: error.message,
 			timestamp: new Date().toISOString()
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
 		});
 	}
 };
@@ -705,6 +1188,29 @@ export const approveHandyman = async (req: Request, res: Response): Promise<void
 	}
 };
 
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
+		});
+	}
+};
+
 // Reject handyman
 export const rejectHandyman = async (req: Request, res: Response): Promise<void> => {
 	try {
@@ -784,6 +1290,29 @@ export const rejectHandyman = async (req: Request, res: Response): Promise<void>
 			message: 'Internal server error',
 			error: error.message,
 			timestamp: new Date().toISOString()
+		});
+	}
+};
+
+// Resend Verification Email
+export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { email } = req.body;
+
+		if (!email) {
+			res.status(HTTPSTATUS.BAD_REQUEST).json({
+				success: false,
+				message: 'Email is required'
+			});
+			return;
+		}
+
+		const result = await authServices.resendVerificationEmail(email);
+		res.status(HTTPSTATUS.OK).json(result);
+	} catch (error: any) {
+		res.status(HTTPSTATUS.BAD_REQUEST).json({
+			success: false,
+			message: error.message
 		});
 	}
 };

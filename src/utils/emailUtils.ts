@@ -22,7 +22,7 @@ export const sendVerificationEmail = async (email: string, token: string): Promi
 		throw new Error(`Invalid email address: ${email}. Please use a valid email address.`);
 	}
 
-	const verificationUrl = `https://kleva-server.vercel.app/api/v1/auth/verify-email/${token}`;
+	const verificationUrl = `${FRONTEND_URL}/verify-email/${token}`;
 
 	const htmlContent = `
 		<!DOCTYPE html>
@@ -53,7 +53,7 @@ export const sendVerificationEmail = async (email: string, token: string): Promi
 					<p>If you didn't create an account, please ignore this email.</p>
 				</div>
 				<div class="footer">
-					<p>© 2024 Handyman Management. All rights reserved.</p>
+					<p>© ${new Date().getFullYear()} Handyman Management. All rights reserved.</p>
 				</div>
 			</div>
 		</body>
