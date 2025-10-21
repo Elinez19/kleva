@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { getRedisClient } from '../config/redis';
 import SessionModel from '../models/session.model';
 import { ISessionData } from '../interfaces/ISession';
@@ -7,8 +8,7 @@ const USER_SESSIONS_PREFIX = 'user_sessions:';
 const SESSION_EXPIRY = 7 * 24 * 60 * 60; // 7 days in seconds
 
 export const generateSessionId = async (): Promise<string> => {
-	const { v4: uuidv4 } = await import('uuid');
-	return uuidv4();
+	return randomUUID();
 };
 
 // Create session key for Redis
