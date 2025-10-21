@@ -2,6 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import { loggingHandler } from './middleware/loggingHandler';
 import { corsHandler } from './middleware/corsHandler';
+import { securityHeaders } from './middleware/securityHeaders';
 import { errorHandler } from './middleware/errorHandler';
 import { apiLimiter } from './middleware/rateLimitHandler';
 import routes from './routes/v1';
@@ -33,6 +34,7 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
 	logging.info('-------------------------------------------');
 }
 application.use(loggingHandler);
+application.use(securityHeaders);
 application.use(corsHandler);
 
 // Only log in development or if not in Vercel environment
