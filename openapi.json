@@ -72,6 +72,7 @@
 									"value": {
 										"email": "john.doe@example.com",
 										"password": "SecurePass123!",
+										"confirmPassword": "SecurePass123!",
 										"role": "customer",
 										"profile": {
 											"firstName": "John",
@@ -87,6 +88,7 @@
 									"value": {
 										"email": "mike.smith@example.com",
 										"password": "HandyMan456!",
+										"confirmPassword": "HandyMan456!",
 										"role": "handyman",
 										"profile": {
 											"firstName": "Mike",
@@ -107,6 +109,7 @@
 									"value": {
 										"email": "admin@handyman-app.com",
 										"password": "AdminSecure789!",
+										"confirmPassword": "AdminSecure789!",
 										"role": "admin",
 										"profile": {
 											"firstName": "Sarah",
@@ -490,18 +493,23 @@
 						"application/json": {
 							"schema": {
 								"type": "object",
-								"required": ["newPassword"],
+								"required": ["newPassword", "confirmPassword"],
 								"properties": {
 									"newPassword": {
 										"type": "string",
 										"minLength": 8,
 										"pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)",
 										"description": "Must contain uppercase, lowercase, and number"
+									},
+									"confirmPassword": {
+										"type": "string",
+										"description": "Must match newPassword"
 									}
 								}
 							},
 							"example": {
-								"newPassword": "NewSecurePass456!"
+								"newPassword": "NewSecurePass456!",
+								"confirmPassword": "NewSecurePass456!"
 							}
 						}
 					}
@@ -2156,13 +2164,17 @@
 		"schemas": {
 			"RegisterCustomer": {
 				"type": "object",
-				"required": ["email", "password", "role", "profile"],
+				"required": ["email", "password", "confirmPassword", "role", "profile"],
 				"properties": {
 					"email": { "type": "string", "format": "email" },
 					"password": {
 						"type": "string",
 						"minLength": 8,
 						"pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)"
+					},
+					"confirmPassword": {
+						"type": "string",
+						"description": "Must match password"
 					},
 					"role": { "type": "string", "enum": ["customer"] },
 					"profile": {
@@ -2183,13 +2195,17 @@
 			},
 			"RegisterHandyman": {
 				"type": "object",
-				"required": ["email", "password", "role", "profile"],
+				"required": ["email", "password", "confirmPassword", "role", "profile"],
 				"properties": {
 					"email": { "type": "string", "format": "email" },
 					"password": {
 						"type": "string",
 						"minLength": 8,
 						"pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)"
+					},
+					"confirmPassword": {
+						"type": "string",
+						"description": "Must match password"
 					},
 					"role": { "type": "string", "enum": ["handyman"] },
 					"profile": {
@@ -2212,13 +2228,17 @@
 			},
 			"RegisterAdmin": {
 				"type": "object",
-				"required": ["email", "password", "role", "profile"],
+				"required": ["email", "password", "confirmPassword", "role", "profile"],
 				"properties": {
 					"email": { "type": "string", "format": "email" },
 					"password": {
 						"type": "string",
 						"minLength": 8,
 						"pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)"
+					},
+					"confirmPassword": {
+						"type": "string",
+						"description": "Must match password"
 					},
 					"role": { "type": "string", "enum": ["admin"] },
 					"profile": {

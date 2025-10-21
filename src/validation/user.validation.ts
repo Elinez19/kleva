@@ -33,35 +33,53 @@ const adminProfileSchema = baseProfileSchema.extend({
 });
 
 // Registration Schemas
-export const registerHandymanSchema = z.object({
-	email: z.string().email('Must be a valid email address').toLowerCase(),
-	password: z
-		.string()
-		.min(8, 'Password must be at least 8 characters')
-		.regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
-	role: z.literal('handyman'),
-	profile: handymanProfileSchema
-});
+export const registerHandymanSchema = z
+	.object({
+		email: z.string().email('Must be a valid email address').toLowerCase(),
+		password: z
+			.string()
+			.min(8, 'Password must be at least 8 characters')
+			.regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
+		confirmPassword: z.string().min(1, 'Confirm password is required'),
+		role: z.literal('handyman'),
+		profile: handymanProfileSchema
+	})
+	.refine((data) => data.password === data.confirmPassword, {
+		message: "Passwords don't match",
+		path: ['confirmPassword']
+	});
 
-export const registerCustomerSchema = z.object({
-	email: z.string().email('Must be a valid email address').toLowerCase(),
-	password: z
-		.string()
-		.min(8, 'Password must be at least 8 characters')
-		.regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
-	role: z.literal('customer'),
-	profile: customerProfileSchema
-});
+export const registerCustomerSchema = z
+	.object({
+		email: z.string().email('Must be a valid email address').toLowerCase(),
+		password: z
+			.string()
+			.min(8, 'Password must be at least 8 characters')
+			.regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
+		confirmPassword: z.string().min(1, 'Confirm password is required'),
+		role: z.literal('customer'),
+		profile: customerProfileSchema
+	})
+	.refine((data) => data.password === data.confirmPassword, {
+		message: "Passwords don't match",
+		path: ['confirmPassword']
+	});
 
-export const registerAdminSchema = z.object({
-	email: z.string().email('Must be a valid email address').toLowerCase(),
-	password: z
-		.string()
-		.min(8, 'Password must be at least 8 characters')
-		.regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
-	role: z.literal('admin'),
-	profile: adminProfileSchema
-});
+export const registerAdminSchema = z
+	.object({
+		email: z.string().email('Must be a valid email address').toLowerCase(),
+		password: z
+			.string()
+			.min(8, 'Password must be at least 8 characters')
+			.regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
+		confirmPassword: z.string().min(1, 'Confirm password is required'),
+		role: z.literal('admin'),
+		profile: adminProfileSchema
+	})
+	.refine((data) => data.password === data.confirmPassword, {
+		message: "Passwords don't match",
+		path: ['confirmPassword']
+	});
 
 // Generic register schema
 export const registerSchema = z.discriminatedUnion('role', [registerHandymanSchema, registerCustomerSchema, registerAdminSchema]);
@@ -84,13 +102,19 @@ export const passwordResetRequestSchema = z.object({
 });
 
 // Password Reset Confirm Schema
-export const passwordResetConfirmSchema = z.object({
-	token: z.string().min(1, 'Reset token is required'),
-	newPassword: z
-		.string()
-		.min(8, 'Password must be at least 8 characters')
-		.regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number')
-});
+export const passwordResetConfirmSchema = z
+	.object({
+		token: z.string().min(1, 'Reset token is required'),
+		newPassword: z
+			.string()
+			.min(8, 'Password must be at least 8 characters')
+			.regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain uppercase, lowercase, and number'),
+		confirmPassword: z.string().min(1, 'Confirm password is required')
+	})
+	.refine((data) => data.newPassword === data.confirmPassword, {
+		message: "Passwords don't match",
+		path: ['confirmPassword']
+	});
 
 // Change Password Schema
 export const changePasswordSchema = z
